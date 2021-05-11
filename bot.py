@@ -4,6 +4,7 @@ import random
 
 import utils
 import cfg
+import functions as func
 
 intents = discord.Intents.default()
 intents.members = True
@@ -33,6 +34,23 @@ async def on_message(message):
 
     if message.content.startswith("!ping"):
         await message.channel.send(f"{message.author.mention} pong")
+
+    if message.content.strip() == "!history":
+        r = await message.channel.send("Checking VRML.com...")
+
+        embed = discord.Embed(
+            title = "Match history", 
+            # description = f"```{func.match_history()}```", 
+            colour=0xffff00
+        )
+        embed.set_author(
+            name="Team Gravity", 
+            url="https://vrmasterleague.com/EchoArena/Teams/I0s62s81gK1eswlVkTNz6Q2",
+            icon_url="https://vrmasterleague.com/images/div_master_40.png"
+        )
+        embed.set_thumbnail(url="https://vrmasterleague.com/images/logos/teams/1259745d-c70e-4064-8907-1ee78fcc5725.png")
+        embed.set_footer(text=func.match_history())
+        await r.edit(content="For now Team Gravity's History streight from <VRML.com>", embed=embed)
 
 @client.event
 async def on_member_join(member):
