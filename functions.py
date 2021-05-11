@@ -18,3 +18,6 @@ def match_history():
 
     return str(clean_matches)
 
+if __name__ == "__main__":
+    print(match_history())
+

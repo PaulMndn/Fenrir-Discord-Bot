@@ -40,7 +40,7 @@ async def on_message(message):
 
         embed = discord.Embed(
             title = "Match history", 
-            # description = f"```{func.match_history()}```", 
+            # description = func.match_history(), 
             colour=0xffff00
         )
         embed.set_author(
