@@ -5,6 +5,7 @@ import random
 import utils
 import cfg
 import functions as func
+import commands
 
 intents = discord.Intents.default()
 intents.members = True
@@ -26,31 +27,62 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+    if not client.is_ready():
+        return
+
     if message.author.bot:
+        # Don't react to bots
         return
     
     if not message.channel.id == cfg.BOT_TEST_CHANNEL_ID:
+        # only react to messges in BOT_TEST_CHANNEL
+        # for testing purposes
         return
 
-    if message.content.startswith("!ping"):
-        await message.channel.send(f"{message.author.mention} pong")
+    if not message.guild: # DM
+        await message.channel.send("Sorrs, I currently don't react to DMs")
+        return
 
-    if message.content.strip() == "!history":
-        r = await message.channel.send("Checking VRML.com...")
+    prefix_p = cfg.PREFIX
+    prefix = None
+    if message.content.startswith(prefix_p):
+        prefix = prefix_p
+    
+    if prefix:
+        msg = message.content[len(prefix):].strip()
+        split = msg.split()
+        cmd = split[0]
+        params = split[1:]
+        params_str = " ".join(params)
 
-        embed = discord.Embed(
-            title = "Match history", 
-            # description = func.match_history(), 
-            colour=0xffff00
-        )
-        embed.set_author(
-            name="Team Gravity", 
-            url="https://vrmasterleague.com/EchoArena/Teams/I0s62s81gK1eswlVkTNz6Q2",
-            icon_url="https://vrmasterleague.com/images/div_master_40.png"
-        )
-        embed.set_thumbnail(url="https://vrmasterleague.com/images/logos/teams/1259745d-c70e-4064-8907-1ee78fcc5725.png")
-        embed.set_footer(text=func.match_history())
-        await r.edit(content="For now Team Gravity's History streight from <VRML.com>", embed=embed)
+        guild = message.guild
+        channel = message.channel
+
+        ctx = {
+            "client": client,
+            "guild": guild,
+            "channel": channel,
+            "command": cmd,
+            "message": message,
+            "params_str": params_str,
+            "prefix": prefix
+        }
+
+        success, response = await commands.run(cmd, params, ctx)
+
+        if success and response != "NO RESPONSE":
+            await message.channel.send(response)
+            return True
+        
+        if not success:
+            if response != "NO RESPONSE":
+                await message.channel.send(f"An error occured.\n{response}")
+                return False
+            else:
+                await message.channel.send("An unnown error occured.")
+                return False
+        
+
 
 @client.event
 async def on_member_join(member):

@@ -1,5 +1,6 @@
 import os
 import json
+import shelve
 
 import cfg
 
@@ -19,3 +20,9 @@ def get_config():
         import sys
         sys.exit()
     return read_json(cf)
+
+def get_planner():
+    pass
+
+def save_planner():
+    pass

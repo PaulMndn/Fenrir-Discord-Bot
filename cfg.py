@@ -25,6 +25,8 @@ CONFIG = get_config()
 
 BOT_TEST_CHANNEL_ID = CONFIG["bot_test-channel"]
 
+PREFIX = "!"
+
 
 # "member" will be replaced by the mention-tag
 JOIN_MSGS = [
@@ -42,3 +44,5 @@ LEAVE_MSGS = [
     f"member, nothing is true.",
     f"member, I have nothing."
 ]
+
+# PLANNER = load_planner()
