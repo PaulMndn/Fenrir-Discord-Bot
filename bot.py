@@ -68,6 +68,9 @@ async def on_message(message):
             "prefix": prefix
         }
 
+        if message.author.permissions_in(channel).administrator:
+            ctx["admin"] = True
+
         success, response = await commands.run(cmd, params, ctx)
 
         if success and response != "NO RESPONSE":

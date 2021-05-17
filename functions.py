@@ -1,6 +1,11 @@
+import discord
 import requests
 import pandas as pd
 import datetime as dt
+import shelve
+import os
+
+import cfg
 
 
 def match_history(home_team = "Fenrir"):        # TODO: better formatting of output
@@ -35,14 +40,32 @@ def match_history(home_team = "Fenrir"):        # TODO: better formatting of out
 
     return str(clean_matches)
 
-def get_plan():
-    pass
 
+# maybe move over to utils
+def get_events(guild):
+    'Return dict of events for guild'
+    with shelve.open(os.path.join(cfg.SCRIPT_DIR, "data", "database")) as db:
+        if not str(guild.id) in db:
+            db[str(guild.id)] = {}
+        try:
+            events = db[str(guild.id)]["events"]
+        except KeyError:
+            events = {}
+    return events
 
-
+# maybe move over to utils
+def add_event(guild, date, name):
+    with shelve.open(os.path.join(cfg.SCRIPT_DIR, "data", "database"), writeback=True) as db:
+        if not str(guild.id) in db:
+            db[str(guild.id)] = {}
+        if not "events" in db[str(guild.id)]:
+            db[str(guild.id)]["events"] = {date: name}
+        
+        db[str(guild.id)]["events"][date] = name
+    
+    return True
 
 
 if __name__ == "__main__":
-    print(match_history("Team Gravity"))
-
-
+    # print(match_history("Team Gravity"))
+    pass

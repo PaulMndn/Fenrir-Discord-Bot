@@ -1,19 +1,21 @@
 import discord
 # import commands
 from . import (
+    event_add,
+    event_remove,
+    events,
     history,
     ping,
-    planner_add,
-    planner_remove,
-    planner
 )
 
+
+
 commands = {
+    "event-add": event_add.command,
+    "event-remove": event_remove.command,
+    "events": events.command,
     "history": history.command,
     "ping": ping.command,
-    # "planner_add": planner_add.command,
-    # "planner_remove": planner_remove.command,
-    # "planner": planner.command
 }
 
 async def run(c, params, ctx):

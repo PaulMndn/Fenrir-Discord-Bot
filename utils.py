@@ -1,3 +1,4 @@
+from asyncio.windows_events import WindowsProactorEventLoopPolicy
 import os
 import json
 import shelve
@@ -20,6 +21,28 @@ def get_config():
         import sys
         sys.exit()
     return read_json(cf)
+
+
+def write_db(guild, key, data):
+    fp = os.path.join(cfg.SCRIPT_DIR, "data", "database")
+    with shelve.open(fp, writeback=True) as db:
+        if not str(guild.id) in db:
+            db[str(guild.id)] = {}
+        
+        db[str(guild.id)][key] = data
+    return True
+
+def read_db(guild, key):
+    fp = os.path.join(cfg.SCRIPT_DIR, "data", "database")
+    with shelve.open(fp) as db:
+        try:
+            data = db[str(guild.id)][key]
+        except KeyError:
+            ret = False
+    if not ret:
+        return False
+    else:
+        return data
 
 def get_planner():
     pass
