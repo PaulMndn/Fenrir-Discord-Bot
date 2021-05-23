@@ -4,6 +4,7 @@ from . import (
     event_add,
     event_remove,
     events,
+    help,
     history,
     ping,
 )
@@ -11,11 +12,12 @@ from . import (
 
 
 commands = {
-    "event-add": event_add.command,
-    "event-remove": event_remove.command,
+    "add-event": event_add.command,
     "events": events.command,
+    "help": help.command,
     "history": history.command,
     "ping": ping.command,
+    "remove-event": event_remove.command,
 }
 
 async def run(c, params, ctx):
