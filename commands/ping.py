@@ -3,6 +3,9 @@ import discord
 from commands.base import Cmd
 
 
+help_text = "Ping me to get the some usefull info about me, like reaction time, latency and server region."
+
+
 async def execute(ctx, params):
     try:
         r = await ctx["channel"].send("One moment...")
