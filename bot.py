@@ -79,10 +79,10 @@ async def on_message(message):
         
         if not success:
             if response != "NO RESPONSE":
-                await message.channel.send(f"An error occured.\n{response}")
+                await message.channel.send(f"**An error occured.**\n{response}")
                 return False
             else:
-                await message.channel.send("An unnown error occured.")
+                await message.channel.send("**An unnown error occured.**")
                 return False
         
 
