@@ -6,6 +6,7 @@ import shelve
 import os
 
 import cfg
+import utils
 
 
 def match_history(home_team = "Fenrir"):        # TODO: better formatting of output

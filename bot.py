@@ -2,8 +2,8 @@ import discord
 import logging
 import random
 
-import utils
 import cfg
+import utils
 import functions as func
 import commands
 
