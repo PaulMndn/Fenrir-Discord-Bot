@@ -15,6 +15,7 @@ intents.webhooks = False
 intents.invites = False
 intents.integrations = False
 
+DEV_TOKEN = cfg.CONFIG["dev_token"]
 TOKEN = cfg.CONFIG["token"]
 # print(TOKEN)
 
@@ -104,7 +105,7 @@ async def on_member_remove(member):
 
 
 
-client.run(TOKEN)
+client.run(DEV_TOKEN)
 
 
 
