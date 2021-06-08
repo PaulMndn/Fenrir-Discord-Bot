@@ -11,7 +11,7 @@ CONFIG = utils.get_config()
 
 BOT_TEST_CHANNEL_ID = CONFIG["bot_test-channel"]
 
-PREFIX = "!"
+PREFIX = "$"
 
 
 # "member" will be replaced by the mention-tag
