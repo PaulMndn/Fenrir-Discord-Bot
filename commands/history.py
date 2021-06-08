@@ -12,8 +12,7 @@ async def execute(ctx, params):
 
     embed = discord.Embed(
         title = "Match history", 
-        colour=0xffff00,
-        description=f"```{match_history(home_team='Team Gravity')}``` "
+        # colour=0xffff00
     )
     embed.set_author(
         name="Team Gravity", 
