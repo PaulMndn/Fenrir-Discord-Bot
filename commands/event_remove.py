@@ -1,11 +1,11 @@
 import datetime as dt
+import logging
 
 from commands.base import Cmd
-from functions import get_events
-from utils import write_db
+from functions import rem_event
 
 
-help_text = """Remove event from planner.
+help_text = """Remove event from event planner.
 Event is identified by date and time.
 Tip: Simply copy & paste the time from the events overview behind the command.
 
@@ -19,25 +19,23 @@ Example: `<PREFIX><COMMAND> 23.05.2021 07:00PM`
 
 
 async def execute(ctx, params):
+    logging.info(f"Executing command {ctx['command']} {ctx['params_str']}.")
     guild = ctx["guild"]
     date = params[0]
     time = params[1]
     
-    events = get_events(guild)
     try:
         date_time = dt.datetime.strptime(f"{date} {time}", "%d.%m.%Y %I:%M%p")
     except ValueError:
+        logging.error(f"Invalide parameter format for date and time: {date} {time}.")
         return False, "Date and/or time format was not recognized."
 
-    if not date_time in events:
-        return True, "At the specified time is no event planned."
-    del_event_name = events[date_time]
-    del(events[date_time])
+    success, event = rem_event(guild, date_time)
+    if success:
+        return True, f"Event *{event}* was removed from the event planner."
+    else:
+        return False, f"No event is planned for {date} {time}."
 
-    if not write_db(guild, "events", events):
-        return False, f"Event {del_event_name} on {date_time.strftime('%d.%m.%Y %I:%M%p')} could not be deleted from database."
-
-    return True, f"Event {del_event_name} on {date_time.strftime('%d.%m.%Y %I:%M%p')} was deleted."
 
 command = Cmd(
     execute=execute,
