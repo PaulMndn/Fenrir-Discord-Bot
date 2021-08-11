@@ -7,6 +7,20 @@ import utils
 import functions as func
 import commands
 
+
+logging.basicConfig(
+    filename="bot.log", 
+    encoding="utf-8", 
+    level=logging.INFO, 
+    format="%(asctime)s %(levelname)s - %(name)s: %(message)s"
+)
+logging.info("""
+#############################################
+############     Starting...     ############
+#############################################"""
+)
+
+
 intents = discord.Intents.default()
 intents.members = True
 intents.presences = True
@@ -24,7 +38,17 @@ client = discord.Client(intents = intents)
 
 @client.event
 async def on_ready():
-    print(f"Logged in as {client.user}")
+    for g in client.guilds:
+        utils.ensure_guild_folder(g)
+
+    activity = discord.Activity(type=discord.ActivityType.listening, name = f"{cfg.PREFIX}help")
+    await client.change_presence(activity=activity)
+    logging.info(f"Logged in as {client.user}")
+
+@client.event
+async def on_guild_join(guild):
+    utils.ensure_guild_folder(guild)
+    
 
 @client.event
 async def on_message(message):
@@ -41,7 +65,7 @@ async def on_message(message):
         return
 
     if not message.guild: # DM
-        await message.channel.send("Sorrs, I currently don't react to DMs")
+        await message.channel.send("Sorry, I currently don't react to DMs.")
         return
 
     prefix_p = cfg.PREFIX
@@ -50,6 +74,10 @@ async def on_message(message):
         prefix = prefix_p
     
     if prefix:
+        logging.debug(f"Recieved message {message.content}"
+            + f" in channel {message.channel.name}"
+            + f" of guild {message.guild.name}"
+        )
         msg = message.content[len(prefix):].strip()
         split = msg.split()
         cmd = split[0]
@@ -66,7 +94,8 @@ async def on_message(message):
             "command": cmd,
             "message": message,
             "params_str": params_str,
-            "prefix": prefix
+            "prefix": prefix,
+            "admin": False
         }
 
         if message.author.permissions_in(channel).administrator:
@@ -74,6 +103,9 @@ async def on_message(message):
 
         success, response = await commands.run(cmd, params, ctx)
 
+        if success:
+            logging.debug(f"Successfully executed command {ctx['command']}. Response: {response}")
+        
         if success and response != "NO RESPONSE":
             await message.channel.send(response)
             return True
@@ -81,9 +113,11 @@ async def on_message(message):
         if not success:
             if response != "NO RESPONSE":
                 await message.channel.send(f"**An error occured.**\n{response}")
+                logging.warning(f"Command: {message.content} Response: {response}")
                 return False
             else:
                 await message.channel.send("**An unnown error occured.**")
+                logging.warning(f"Unknown error while executing the command: {message.content}")
                 return False
         
 
@@ -92,14 +126,14 @@ async def on_message(message):
 async def on_member_join(member):
     # if member.guild.id not in cfg.VALID_SERVERS:
     #     return
-    msg = random.choice(cfg.JOIN_MSGS).replace("member", member.mention)
+    msg = random.choice(cfg.JOIN_MSGS).replace("MEMBER", member.mention)
     await member.guild.system_channel.send(msg)
 
 @client.event
 async def on_member_remove(member):
     # if member.guild.id not in cfg.VALID_SERVERS:
     #     return
-    msg = random.choice(cfg.LEAVE_MSGS).replace("member", member.mention)
+    msg = random.choice(cfg.LEAVE_MSGS).replace("MEMBER", f"{member.name}#{member.discrimator}")
     await member.guild.system_channel.send(msg)
 
 
