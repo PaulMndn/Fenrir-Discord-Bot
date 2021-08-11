@@ -15,13 +15,13 @@ async def execute(ctx, params):
         # colour=0xffff00
     )
     embed.set_author(
-        name="Team Gravity", 
-        url="https://vrmasterleague.com/EchoArena/Teams/I0s62s81gK1eswlVkTNz6Q2",
-        icon_url="https://vrmasterleague.com/images/div_master_40.png"
+        name="Fenrir", 
+        url="https://vrmasterleague.com/EchoArena/Teams/SRo_nCsh6RT2Py5X5_iUyw2",
+        icon_url="https://vrmasterleague.com/images/div_bronze_2_40.png"
     )
-    embed.set_thumbnail(url="https://vrmasterleague.com/images/logos/teams/1259745d-c70e-4064-8907-1ee78fcc5725.png")
-    embed.set_footer(text=match_history(home_team="Team Gravity"))
-    await r.edit(content="For now Team Gravity's history streight from <VRML.com>", embed=embed)
+    embed.set_thumbnail(url="https://vrmasterleague.com/images/logos/teams/3d5c9260-0f0d-4b1a-a2b3-45ad7e9f9313.png")
+    embed.set_footer(text=match_history())
+    await r.edit(content="", embed=embed)
     
     return True, "NO RESPONSE"
 
