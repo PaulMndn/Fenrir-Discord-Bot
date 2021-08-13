@@ -7,6 +7,7 @@ from . import (
     help,
     history,
     ping,
+    settings,
 )
 
 
@@ -18,6 +19,7 @@ commands = {
     "history": history.command,
     "ping": ping.command,
     "remove-event": event_remove.command,
+    "settings": settings.command
 }
 
 async def run(c, params, ctx):
