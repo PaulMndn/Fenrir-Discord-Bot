@@ -1,3 +1,4 @@
+import discord
 import os
 import json
 import shelve
@@ -45,10 +46,11 @@ def ensure_guild_folder(guild):
 def get_default_settings():
     'get default settings from data/default.json'
     fp = str(cfg.DATA_DIR/"default_settings.json")
-    return json.load(fp)
+    with open(fp, "r") as default_settings:
+        return json.load(default_settings)
 
 
-def get_guild_settings(guild):
+def get_guild_settings(guild) -> dict:
     '''Get guild settings.
     
     Args:
@@ -65,3 +67,18 @@ def get_guild_settings(guild):
             guild_settings[k] = v
     
     return guild_settings
+
+
+def reset_guild_settings(guild: discord.Guild):
+    "Delete all guild specific settings"
+    with shelve.open(str(cfg.DATA_DIR/str(guild.id)/"settings")) as settings:
+        for i in settings:
+            del settings[i]
+    return True
+
+
+
+
+
+if __name__ == "__main__":
+    print(get_default_settings())
