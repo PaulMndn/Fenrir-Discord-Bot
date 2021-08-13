@@ -11,8 +11,9 @@ import commands
 logging.basicConfig(
     filename="bot.log", 
     encoding="utf-8", 
-    level=logging.INFO, 
-    format="%(asctime)s %(levelname)s - %(name)s: %(message)s"
+    level=logging.DEBUG, 
+    format="%(asctime)s %(levelname)s - %(name)s: %(message)s",
+    force=True
 )
 logging.info("""
 #############################################
