@@ -18,15 +18,15 @@ async def execute(ctx, params):
     events = get_events(ctx["guild"])
     all = False if not params or params[0].lower() != "all" else True
 
-    if events == {}:
+    if events == []:
         return True, "You don't have any events planned."
     event_list = []
-    for date_time in sorted(events.keys()):
+    for event in sorted(events):
         if all:
-            event_list.append((date_time, events[date_time]))
+            event_list.append(event)
         else:
-            if date_time.date() >= dt.date.today():
-                event_list.append((date_time, events[date_time]))
+            if event >= dt.date.today():
+                event_list.append(event)
     
     if not event_list:
         if all:
@@ -36,8 +36,8 @@ async def execute(ctx, params):
         
     
     embed = discord.Embed(title = "All events:" if all else "Upcoming events:")
-    for date, name in event_list:
-        embed.add_field(name=name, value=date.strftime(format="%d.%m.%Y %I:%M%p"), inline=False)
+    for event in event_list:
+        embed.add_field(name=event.title, value=event.date_time.strftime(format="%d.%m.%Y %I:%M%p"), inline=False)
     
     await ctx['channel'].send(embed=embed)
 
