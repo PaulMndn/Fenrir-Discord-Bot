@@ -31,3 +31,6 @@ LEAVE_MSGS = [
     "MEMBER, I have nothing."
 ]
 
+
+# global volatile storage
+availabilities = {}
