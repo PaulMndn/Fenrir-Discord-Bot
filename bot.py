@@ -96,9 +96,16 @@ async def on_message(message):
             "message": message,
             "params_str": params_str,
             "prefix": prefix,
+            "team": False,
             "admin": False
         }
 
+        team_role_id = utils.get_guild_settings(guild)["team_role"]
+        if team_role_id is not None:
+            if team_role_id in [role.id for role in message.author.roles]:
+                ctx["team"] = True
+        print(ctx['team'])
+            
         if message.author.permissions_in(channel).administrator:
             ctx["admin"] = True
 
@@ -113,12 +120,12 @@ async def on_message(message):
         
         if not success:
             if response != "NO RESPONSE":
-                await message.channel.send(f"**An error occured.**\n{response}")
-                logging.warning(f"Command: {message.content} Response: {response}")
+                await message.channel.send(f":no_entry_sign: **An error occured.** :no_entry_sign:\n{response}")
+                logging.error(f"Command: {message.content} Response: {response}")
                 return False
             else:
                 await message.channel.send("**An unnown error occured.**")
-                logging.warning(f"Unknown error while executing the command: {message.content}")
+                logging.error(f"Unknown error while executing the command: {message.content}")
                 return False
         
 
@@ -136,6 +143,32 @@ async def on_member_remove(member):
     #     return
     msg = random.choice(cfg.LEAVE_MSGS).replace("MEMBER", f"{member.name}#{member.discrimator}")
     await member.guild.system_channel.send(msg)
+
+
+
+@client.event
+async def on_reaction_add(reaction, user):
+    if user.bot:
+        return
+    funcs = utils.get_react_msg_funcs(reaction.message.guild, reaction.message)
+    if funcs is False:
+        return
+    
+    # execute add function
+    await funcs[0](reaction, user)
+
+
+@client.event
+async def on_reaction_remove(reaction, user):
+    if user.bot:
+        return
+    funcs = utils.get_react_msg_funcs(reaction.message.guild, reaction.message)
+    if funcs is False:
+        return
+    
+    # execute remove function
+    await funcs[1](reaction, user)
+
 
 
 
