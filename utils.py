@@ -77,6 +77,19 @@ def reset_guild_settings(guild: discord.Guild):
     return True
 
 
+def add_react_msg(guild, msg, add_func, rem_func):
+    with shelve.open(str(cfg.DATA_DIR/str(guild.id)/"react_msgs")) as react_msgs:
+        if str(msg.id) in react_msgs:
+            logging.error("Can't add message. Message ID already exists in react_msgs db.")
+            return False, "Message id already exists in react_msgs DB."
+        react_msgs[str(msg.id)] = (add_func, rem_func)
+        return True, "Message added to DB."
+
+def get_react_msg_funcs(guild, msg):
+    with shelve.open(str(cfg.DATA_DIR/str(guild.id)/"react_msgs")) as react_msgs:
+        if str(msg.id) not in react_msgs:
+            return False
+        return react_msgs[str(msg.id)]
 
 
 
