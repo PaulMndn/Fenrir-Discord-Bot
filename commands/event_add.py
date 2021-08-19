@@ -1,29 +1,48 @@
+import discord
 import re
 import datetime as dt
+import logging
 
 from commands.base import Cmd
 from functions import add_event, get_events
+from utils import get_guild_settings
+from lib.event import Event
 
 
 help_text = f'''Add a new event entry to the calendar.
 
-The message needs to include a title in quotes, followed by *on <date> at <time>*.
-**British Time** is assumed as timezone.
+The message needs to include a title followed by a time and optionally a date. \
 Is no date parameter given, the current date is assumed.
+**British Time** is assumed as timezone.
+
+Usage:
+```<PREFIX><COMMAND> [title] on [date] at [time]
+<PREFIX><COMMAND> [title] at [time] <on date>```
 
 Examples:
-```<PREFIX><COMMAND> 'Scrim against Team' on 22.05.2021 at 07:00pm
-<PREFIX><COMMAND> 'Training' at 07:00 pm on 21.12.2012
-<PREFIX><COMMAND> 'Foo Bar' at 07:00AM```'''
+```<PREFIX><COMMAND> Scrim against Team on 22.05.2021 at 07:00pm
+<PREFIX><COMMAND> The end of the world! at 07:00 pm on 21.12.2012
+<PREFIX><COMMAND> Training at 07:00AM```'''
 
 
 async def execute(ctx, params):
+    guild: discord.Guild = ctx['guild']
     string = ctx["params_str"]
 
-    # create regular expression
+    guild_settings = get_guild_settings(guild)
+    events_channel_id = guild_settings['events_channel']
+    team_role_id = guild_settings['team_role']
+    if events_channel_id is None:
+        # no events_channel
+        return False, "Please select a channel for the event planner before creating events using the `settings` command."
+    events_channel = guild.get_channel(events_channel_id)
+    team_role = guild.get_role(team_role_id)
+
+
+    # create regular expression and parse date and time input
     time_re = r"at ([01]\d:\d\d) ?(am|AM|pm|PM)"
     date_re = r"on ([0123]\d[.][01]?\d[.](\d\d\d\d))"
-    pattern = f"^['\"](.*)['\"] ({date_re} {time_re}|{time_re}( {date_re})?)$"
+    pattern = f"^(.*?) ({date_re} {time_re}|{time_re}( {date_re})?)$"
     p = re.compile(pattern)
 
     match = re.match(p, string)
@@ -47,19 +66,33 @@ async def execute(ctx, params):
     
     date_time = dt.datetime.strptime(f"{date} {time}{period}", "%d.%m.%Y %I:%M%p")
 
-    events = get_events(ctx['guild'])
-    if date_time in events:
-        return False, f"There is already an event scheduled for that time:\n{events[date_time]}"
 
-    if add_event(ctx["guild"], date_time, title):
-        return True, f"Event **{title}** for *{date_time.strftime('%d.%m.%Y at %I:%M%p')}* was added."
-    else:
-        return False, "Event could not be added."
+    if any(event == date_time for event in get_events(guild)):
+        # already an event planed for this time
+        return False, f"There is already an event scheduled for {date_time}."
+
+    msg = await events_channel.send("Creating new event")
+    event = Event(title, date_time, events_channel_id, msg.id)
+    try:
+        add_event(guild, event)
+    except Exception as e:
+        import sys
+        logging.error(f"Exception during saving of event to database: {e.with_traceback(sys.exc_info()[2])}")
+        await msg.delete()
+        return False, "Error during event creation."
+    
+    content = (f"{team_role.mention} " if team_role is not None else "") + str(event)
+    await msg.edit(content=content)
+
+    return True, f"{event} was added."
+
+
+
 
 
 command = Cmd(
     execute=execute,
     help_text=help_text,
-    params_required=0,
+    params_required=3,
     admin_required=True
 )
