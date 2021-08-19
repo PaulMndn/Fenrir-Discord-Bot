@@ -1,6 +1,7 @@
 import discord
 # import commands
 from . import (
+    availability,
     event_add,
     event_remove,
     events,
@@ -13,6 +14,7 @@ from . import (
 
 
 commands = {
+    "availibility": availability.command,
     "add-event": event_add.command,
     "events": events.command,
     "help": help.command,
