@@ -1,3 +1,4 @@
+from lib.event import Event
 import discord
 import requests
 import pandas as pd
@@ -44,29 +45,42 @@ def match_history(home_team = "Fenrir"):        # TODO: better formatting of out
 
 
 # maybe move over to utils
-def get_events(guild):
-    'Return dict of events for guild'
+def get_events(guild) -> list[Event]:
+    'Returns list of event objects for this guild.'
     with shelve.open(str(cfg.DATA_DIR / str(guild.id) / "events")) as events:
-        out = {dt.datetime.fromisoformat(k):v for k,v in events.items()}
+        out = list(events.values())
         return out
 
 
 # maybe move over to utils
-def add_event(guild: discord.guild, date: dt.datetime, name: str):
+def add_event(guild: discord.Guild, event:Event):
     with shelve.open(str(cfg.DATA_DIR / str(guild.id) / "events")) as events:
-        events[date.isoformat()] = name
+        events[event.key] = event
     return True
 
 
-def rem_event(guild, date: dt.datetime):
+def rem_event(guild: discord.Guild, date: dt.datetime):
+    '''Removes an event from the guilds planner.
+    
+    Args: 
+        guild: planner of this guild will be edited
+        date: datetime of event to identify it
+    
+    Returns: 
+        (bool, str): True and removed event when success,
+            False and "KeyError" if failed
+    '''
     logging.debug(f"Removing event {date} from event db for guild {guild.name}, ID: {guild.id}.")
     with shelve.open(str(cfg.DATA_DIR / str(guild.id) / "events")) as events:
         try:
-            event = events.pop(date.isoformat())
+            event = next(e for e in events.values() if e.date_time == date)
+            deleted_event = events.pop(event.key)
         except KeyError:
             logging.error(f"No event with {date} exists in the event planner.")
-            return False
+            return False, "KeyError"
     return True, event
+
+
 
 
 
