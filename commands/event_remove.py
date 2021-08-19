@@ -1,7 +1,9 @@
+import discord
 import datetime as dt
 import logging
 
 from commands.base import Cmd
+from utils import get_guild_settings
 from functions import rem_event
 
 
@@ -20,7 +22,7 @@ Example: `<PREFIX><COMMAND> 23.05.2021 07:00PM`
 
 async def execute(ctx, params):
     logging.info(f"Executing command {ctx['command']} {ctx['params_str']}.")
-    guild = ctx["guild"]
+    guild: discord.Guild = ctx["guild"]
     date = params[0]
     time = params[1]
     
@@ -31,8 +33,17 @@ async def execute(ctx, params):
         return False, "Date and/or time format was not recognized."
 
     success, event = rem_event(guild, date_time)
+    try:
+        await guild.get_channel(event.event_channel_id).get_partial_message(event.msg_id).delete()
+    except discord.NotFound:
+        logging.warning(f"Event message for event '{event}' in planner channel \
+            ({guild.get_channel(event.event_channel_id).name} <#{event.event_channel_id}>) \
+            was not found and could not be deleted.")
+        await ctx['channel'].send(f"Event message was not found in event planner (<#{event.event_channel_id}>) and thus could not be deleted.")
+
+    
     if success:
-        return True, f"Event *{event}* was removed from the event planner."
+        return True, f"Event {event} was removed from the event planner."
     else:
         return False, f"No event is planned for {date} {time}."
 
