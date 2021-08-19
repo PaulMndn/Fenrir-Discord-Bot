@@ -64,9 +64,9 @@ async def execute(ctx, params):
         
         # update settings
         old_val = guild_settings[setting]
-        with shelve.open(str(cfg.DATA_DIR / str(guild.id) / "settings")) as settings:
-            settings[setting] = new_val
-            logging.info(f"Changed setting {setting} from {old_val} to {new_val} for server {ctx['guild'].name}, ID: {ctx['guild'].id}.")
+        with shelve.open(str(cfg.DATA_DIR / str(guild.id) / "settings")) as settings:   # outsource to utils?
+            settings[setting] = id
+            logging.info(f"Changed setting {setting} from {old_val} to {id} for server {ctx['guild'].name}, ID: {ctx['guild'].id}.")
         
         return True, f"{setting} was changed from {old_val} to {new_val}."
 
