@@ -81,6 +81,17 @@ def rem_event(guild: discord.Guild, date: dt.datetime):
     return True, event
 
 
+async def dm_admin(client, message:str, embed=None):
+    "Send direct message to admin."
+    admin = client.get_user(cfg.CONFIG['admin_id'])
+
+    if admin.dm_channel is None:
+        await admin.create_dm()
+    
+    await admin.dm_channel.send(content=message,embed=embed)
+    
+
+
 
 
 
