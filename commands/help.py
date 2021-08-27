@@ -1,4 +1,3 @@
-from typing import ContextManager
 from commands.base import Cmd
 
 
@@ -16,8 +15,15 @@ async def execute(ctx, params):
         text = ["I can help you with the following commands:"]
         for c in commands:
             cmd = commands[c]
-            if not cmd.admin_required:
+            if not (cmd.admin_required or cmd.team_required):
                 text.append(f"`{ctx['prefix']}{c}`")
+        
+        if ctx["team"]:
+            text.append("\nTeam commands:")
+            for c in commands:
+                cmd = commands[c]
+                if cmd.team_required:
+                    text.append(f"`{ctx['prefix']}{c}`")
         
         if ctx["admin"]:
             text.append("\nAdmin commands:")
@@ -25,15 +31,18 @@ async def execute(ctx, params):
                 cmd = commands[c]
                 if cmd.admin_required:
                     text.append(f"`{ctx['prefix']}{c}`")
-        text.append(f"\nIf you want more info on a specific command try `{ctx['prefix']}{ctx['command']} <command>`.")
-
+        
+        text.append(f"\nIf you want more info on a specific command try `{ctx['prefix']}{ctx['command']} command_name`.")
+        
         return True, "\n".join(text)
+    
     else:
         from commands import commands
         if params[0] not in commands:
-            return False, f"Unknown command: `{params[0]}`"
+            return True, f"Unknown command: `{params[0]}`"
         cmd = commands[params[0]]
-        if cmd.admin_required and not ctx["admin"]:
+        if (cmd.admin_required and not ctx["admin"]) \
+            or (cmd.team_required and not ctx['team']):
             return True, f"Sorry, you don't have the necessary permissions to use the command `{ctx['prefix']}{params[0]}`."
         help_text = cmd.help_text
         if not help_text:
@@ -47,5 +56,6 @@ command = Cmd(
     execute=execute,
     help_text=help_text,
     params_required=0,
+    team_required=False,
     admin_required=False
 )

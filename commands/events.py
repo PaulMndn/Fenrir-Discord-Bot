@@ -1,16 +1,21 @@
 import datetime as dt
-
 import discord
+import logging
 
 from commands.base import Cmd
 from functions import get_events
+
+log = logging.getLogger(__name__)
 
 
 help_text = """Write overview over upcoming events.
 If parameter `all` is given, all events are listed even ones that are already in past.
 
-Examples:```
-<PREFIX><COMMAND>
+Usage:
+```<PREFIX><COMMAND> [all]```
+
+Examples:
+```<PREFIX><COMMAND>
 <PREFIX><COMMAND> all```
 """
 

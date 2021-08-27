@@ -1,9 +1,12 @@
 from typing import Tuple
 import discord
+import logging
 
 import utils
 import cfg
 from commands.base import Cmd
+
+log = logging.getLogger(__name__)
 
 help_text = """I can keep track of availabilities for you. This is usefull for \
 finding available dates for matches.
@@ -13,16 +16,12 @@ availability for. The second parameter, if given, must be greater.
 Weekdays are identified by numbers: 1-Monday to 7-Sunday.
 
 Usage:
-```
-<PREFIX><COMMAND> [single_or_start_day] [to_day]
-```
+```<PREFIX><COMMAND> [day_or_start_day] [end_day]```
 
 Examples:
-```
-<PREFIX><COMMAND>
+```<PREFIX><COMMAND>
 <PREFIX><COMMAND> 3
-<PREFIX><COMMAND> 2 7
-```
+<PREFIX><COMMAND> 2 7```
 """
 
 number_emoji = {
@@ -194,11 +193,12 @@ async def execute(ctx, params):
     
     availability = Availability(msg, msg_yes, msg_no, (from_day,to_day))
     cfg.availabilities[guild.id] = availability
-
+    log.debug("Availability object stored in variable (volitile).")
 
         
     utils.add_react_msg(guild, msg_yes, yes_reaction_add, yes_reaction_remove)
     utils.add_react_msg(guild, msg_no, no_reaction_add, no_reaction_remove)
+    log.debug("Both messages added to shelve to keep track of messages that we want to listen to reactions on.")
 
     return True, "NO RESPONSE"
 

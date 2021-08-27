@@ -1,6 +1,10 @@
 import discord
+import logging
+import utils
 
 from commands.base import Cmd
+
+log = logging.getLogger(__name__)
 
 
 help_text = "Ping me to get the some usefull info about me, like reaction time, latency and server region."
@@ -8,8 +12,9 @@ help_text = "Ping me to get the some usefull info about me, like reaction time, 
 
 async def execute(ctx, params):
     try:
-        r = await ctx["channel"].send("One moment...")
+        r = await ctx["channel"].send(utils.get_loading_msg())
     except discord.errors.Forbidden:
+        log.error(f"Can't send message in channel {ctx['channel'].name}.")
         return False, f"Can't send message in channel {ctx['channel'].name}."
     t1 = ctx["message"].created_at
     t2 = r.created_at

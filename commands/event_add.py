@@ -2,11 +2,14 @@ import discord
 import re
 import datetime as dt
 import logging
+import traceback
 
 from commands.base import Cmd
 from functions import add_event, get_events
 from utils import get_guild_settings
 from lib.event import Event
+
+log = logging.getLogger(__name__)
 
 
 help_text = f'''Add a new event entry to the calendar.
@@ -16,8 +19,8 @@ Is no date parameter given, the current date is assumed.
 **British Time** is assumed as timezone.
 
 Usage:
-```<PREFIX><COMMAND> [title] on [date] at [time]
-<PREFIX><COMMAND> [title] at [time] <on date>```
+```<PREFIX><COMMAND> <event_title> on <event_date> at <event_time>
+<PREFIX><COMMAND> <event_title> at <event_time> [on <event_date>]```
 
 Examples:
 ```<PREFIX><COMMAND> Scrim against Team on 22.05.2021 at 07:00pm
@@ -77,7 +80,7 @@ async def execute(ctx, params):
         add_event(guild, event)
     except Exception as e:
         import sys
-        logging.error(f"Exception during saving of event to database: {e.with_traceback(sys.exc_info()[2])}")
+        log.error(f"Exception during saving of event to database: {traceback.format_exc()}")
         await msg.delete()
         return False, "Error during event creation."
     
