@@ -60,14 +60,47 @@ async def on_message(message):
         # Don't react to bots
         return
     
+    if not message.guild: # DM
+        if not message.author.id == cfg.CONFIG['admin_id']:
+            await message.channel.send("Sorry, I currently don't react to DMs.")
+            return
+
+        text = message.content.strip()
+        if text.startswith("log"):
+            line_count = 25
+
+            params = text.split()[1:]
+            if params:
+                try:
+                    line_count = int(params[0])
+                except ValueError:
+                    pass
+
+            replacement_emojis = {
+                "DEBUG": "🚧",
+                "INFO": "🗒️",
+                "WARNING": "⚠️",
+                "ERROR": "‼️",
+                "CRITICAL": "💀",
+                "FATAL": "💀"
+            }
+
+            with open(LOG_FILE, "r", encoding="utf-8") as lf:
+                lines = lf.readlines()[-line_count:]
+                for line in lines:
+                    for k,v in replacement_emojis.items():
+                        line = line.replace(k,v)
+                    if len(line) > 2000:
+                        line = line[-2000:]
+                    line = f"{line}"
+                    await func.dm_admin(client, line)
+
+
     if not message.channel.id == cfg.BOT_TEST_CHANNEL_ID:
         # only react to messges in BOT_TEST_CHANNEL
         # for testing purposes
         return
 
-    if not message.guild: # DM
-        await message.channel.send("Sorry, I currently don't react to DMs.")
-        return
 
     prefix_p = cfg.PREFIX
     prefix = None
