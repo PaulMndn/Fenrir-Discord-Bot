@@ -1,28 +1,98 @@
 import discord
 from functions import match_history
+import utils
+import cfg
+import random
+import lib.vrml as vrml
+import logging
 
 from commands.base import Cmd
 
+log = logging.getLogger(__name__)
 
-help_text = "History of matches of team Fenrir."
+help_text = """Get a history of matches in the current season for a team.
+If no team is specified, the default team is used. This can be changed via \
+the settings command.
+
+Usage:
+```<PREFIX><COMMAND> [team_name]```
+
+Examples:
+```<PREFIX><COMMAND>
+<PREFIX><COMMAND> Team Gravity
+<PREFIX><COMMAND> blank```
+"""
 
 
 async def execute(ctx, params):
-    r = await ctx["channel"].send("Checking VRML.com...")
+    r = await ctx["channel"].send(utils.get_loading_msg())
 
-    embed = discord.Embed(
-        title = "Match history", 
-        # colour=0xffff00
-    )
-    embed.set_author(
-        name="Fenrir", 
-        url="https://vrmasterleague.com/EchoArena/Teams/SRo_nCsh6RT2Py5X5_iUyw2",
-        icon_url="https://vrmasterleague.com/images/div_bronze_2_40.png"
-    )
-    embed.set_thumbnail(url="https://vrmasterleague.com/images/logos/teams/3d5c9260-0f0d-4b1a-a2b3-45ad7e9f9313.png")
-    embed.set_footer(text=match_history())
-    await r.edit(content="", embed=embed)
+    if not params:
+        team_name = utils.get_guild_settings(ctx['guild'])['team_name']
+        if team_name is None:
+            await r.delete()
+            log.error("No team name given and no default value is set.")
+            return False, "No default team name set."
+        log.debug("Stored team name used.")
+    else:
+        team_name = ctx['params_str']
     
+    
+    seasons = await vrml.seasons("EchoArena")
+    current_season = seasons[-1]    # get latest season
+    p_teams: list[vrml.PartialTeam] = await vrml.search_team("EchoArena", team_name, region = "EU", season=current_season.id)
+    if not p_teams:
+        log.error(f"No teams were found under the name {team_name}.")
+        await r.edit(content="No teams were found.")
+        return True, "NO RESPONSE"
+    elif len(p_teams) > 1:
+        log.error(f"Multiple Teams were found under the name {team_name}.")
+        await r.edit(content="The team search term is not unambiguous. Please try again.")
+        return True, "NO RESPONSE"
+    
+    p_team = p_teams[0]
+    team = await p_team.fetch()
+    history = await team.matches_history()
+
+    embed = discord.Embed(title="Match History")
+    embed.set_author(
+        name = team.name, 
+        url = f"https://vrmasterleague.com/EchoArena/Teams/{team.id}",
+        icon_url = "https://vrmasterleague.com"+team.division_logo_url
+    ) 
+    embed.set_thumbnail(url="https://vrmasterleague.com"+team.logo_url)
+
+    footer_lines = []
+    for match in history:
+        if match.season_name != current_season.name:
+            continue
+        line = [match.scheduled_date.date().isoformat()+":"]
+        if match.home_team.name == team_name:
+            # searched team is home team
+            line.append(match.home_team.name)
+            line.append(f"{match.home_team_score} - {match.away_team_score}")
+            line.append(match.away_team.name)
+            # insert win/lose indicator
+            if match.winning_team_id == match.home_team.id:
+                line.insert(0, "✅")
+            else:
+                line.insert(0, "❌")
+        else:
+            # searched team is away team
+            line.append(match.away_team.name)
+            line.append(f"{match.away_team_score} - {match.home_team_score}")
+            line.append(match.home_team.name)
+            # insert win/lose indicator
+            if match.winning_team_id == match.away_team.id:
+                line.insert(0, "✅")
+            else:
+                line.insert(0, "❌")
+        footer_lines.append("  ".join(line))
+    
+    embed.set_footer(text="\n".join(footer_lines))
+
+    await r.edit(content="", embed=embed)
+
     return True, "NO RESPONSE"
 
 
