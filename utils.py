@@ -3,17 +3,19 @@ import os
 import json
 import shelve
 import logging
+import random
 
 import cfg
 
+log = logging.getLogger(__name__)
 
 
 def get_config():
     'import config.json'
-    logging.info("Import config.json")
+    log.info("Import config.json")
     cf = cfg.SCRIPT_DIR / "config.json"
     if not cf.exists():
-        logging.critical("Config file does not exist! Programm will shut down.")
+        log.critical("Config file does not exist! Programm will shut down.")
         import sys
         sys.exit()
     
@@ -80,7 +82,7 @@ def reset_guild_settings(guild: discord.Guild):
 def add_react_msg(guild, msg, add_func, rem_func):
     with shelve.open(str(cfg.DATA_DIR/str(guild.id)/"react_msgs")) as react_msgs:
         if str(msg.id) in react_msgs:
-            logging.error("Can't add message. Message ID already exists in react_msgs db.")
+            log.error("Can't add message. Message ID already exists in react_msgs db.")
             return False, "Message id already exists in react_msgs DB."
         react_msgs[str(msg.id)] = (add_func, rem_func)
         return True, "Message added to DB."
@@ -91,7 +93,7 @@ def get_react_msg_funcs(guild, msg):
             return False
         return react_msgs[str(msg.id)]
 
+def get_loading_msg():
+    return random.choice(cfg.LOADING_MSGS)
 
 
-if __name__ == "__main__":
-    print(get_default_settings())
