@@ -13,16 +13,17 @@ Modify a setting by adding the setting and value behind the command. Role or cha
 
 Following settings exist:
 ```
-events_channel       Channel to post events in. Tag new channel when modifying.
+events_channel      Channel to post events in. Tag new channel when modifying.
 team_role           Role with permissions to team commands. @Role when modifying.
+team_name           The name of the team. This is used as default for the `history` command.
 ```
 
-USAGE: `<PREFIX><COMMAND> [setting new_value]`
+USAGE: 
+```<PREFIX><COMMAND> [setting] [new_value]```
 
 EXAMPLES:
-```
-<PREFIX><COMMAND>
-```
+```<PREFIX><COMMAND>
+<PREFIX><COMMAND> team_name Fenrir```
 """
 
 
@@ -44,30 +45,37 @@ async def execute(ctx, params):
         return True, "Your settings have been reset to the default values.\n\n" \
             f"These were your settings before:\n```\n{old_settings}\n```"
 
-    elif len(params) == 2:
+    elif len(params) >= 2:
         # setting and new value included
         setting = params[0]
-        new_val = params[1]
+        new_val = " ".join(params[1:])
         guild_settings = get_guild_settings(guild)
         
         if setting not in guild_settings:
             return False, f"Setting {setting} does not exist."
 
-        # check validity of new value
-        id = int(new_val.strip("<>#@!&"))
-        if setting == "events_channel" and guild.get_channel(id) is None:
-            logging.error(f"Invalid channel to set as events_channel for guild {guild.name}, ID: {guild.id}")
-            return False, "Invalide channel"
-        elif setting == "team_role" and guild.get_role(id) is None:
-            logging.error(f"Invalid role to set as team_role for guild {guild.name}, ID: {guild.id}")
-            return False, "Invalide Channel"
+        if setting in ["events_channel", "team_role"]:
+            # for special settings. (These are set with tags/pings -> check, extract IDs)
+            # check validity of new value
+            id = int(new_val.strip("<>#@!&"))
+            if setting == "events_channel" and guild.get_channel(id) is None:
+                logging.error(f"Invalid channel to set as events_channel for guild {guild.name}, ID: {guild.id}")
+                return False, "Invalide channel"
+            elif setting == "team_role" and guild.get_role(id) is None:
+                logging.error(f"Invalid role to set as team_role for guild {guild.name}, ID: {guild.id}")
+                return False, "Invalide Channel"
         
-        # update settings
-        old_val = guild_settings[setting]
-        with shelve.open(str(cfg.DATA_DIR / str(guild.id) / "settings")) as settings:   # outsource to utils?
-            settings[setting] = id
-            logging.info(f"Changed setting {setting} from {old_val} to {id} for server {ctx['guild'].name}, ID: {ctx['guild'].id}.")
-        
+            # update settings
+            old_val = guild_settings[setting]
+            with shelve.open(str(cfg.DATA_DIR / str(guild.id) / "settings")) as settings:   # outsource to utils?
+                settings[setting] = id
+                logging.info(f"Changed setting {setting} from {old_val} to {id} for server {ctx['guild'].name}, ID: {ctx['guild'].id}.")
+        else:
+            old_val = guild_settings[setting]
+            with shelve.open(str(cfg.DATA_DIR / str(guild.id) / "settings")) as settings:   # outsource to utils?
+                settings[setting] = new_val
+                logging.info(f"Changed setting {setting} from {old_val} to {new_val} for server {ctx['guild'].name}, ID: {ctx['guild'].id}.")
+
         return True, f"{setting} was changed from {old_val} to {new_val}."
 
     else:
