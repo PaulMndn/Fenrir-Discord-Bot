@@ -49,6 +49,7 @@ command = Cmd(
     execute=execute,
     help_text="",
     params_required=0,
-    admin_required=True
+    team_required=True,
+    admin_required=False
 )
 
