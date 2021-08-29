@@ -6,6 +6,7 @@ import datetime as dt
 import shelve
 import logging
 import requests
+from typing import List
 
 import cfg
 import utils
@@ -45,7 +46,7 @@ def match_history(home_team = "Fenrir"):        # TODO: better formatting of out
 
 
 # maybe move over to utils
-def get_events(guild) -> list[Event]:
+def get_events(guild) -> List[Event]:
     'Returns list of event objects for this guild.'
     with shelve.open(str(cfg.DATA_DIR / str(guild.id) / "events")) as events:
         out = list(events.values())
