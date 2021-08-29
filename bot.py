@@ -14,8 +14,8 @@ formatter = logging.Formatter("%(asctime)s %(levelname)s - %(name)s: %(message)s
 handler = RotatingFileHandler(
     filename=LOG_FILE,
     mode="a",
-    maxBytes=5*1024*1024, # 5MB
-    backupCount=2,
+    maxBytes=5*1024*1024, # 5 MiB
+    backupCount=5,
     encoding="utf-8"
 )
 handler.setFormatter(formatter)
@@ -177,7 +177,12 @@ async def on_message(message):
                 await message.channel.send(":no_entry_sign: **An unnown error occured.** :no_entry_sign:")
                 log.error(f"Unknown error while executing the command (no success, no response): {msg}")
                 return False
-        
+
+
+@client.event
+async def on_message_delete(message):
+    func.rem_event_from_msg(message)
+    
 
 
 @client.event
@@ -206,7 +211,7 @@ async def on_reaction_add(reaction, user):
     if funcs is False:
         return
     
-    log.debug(f"Reaction {reaction.emoji} was added to message {reaction.message.id} by user {user.name}#{user.discriminator}.")
+    log.info(f"Reaction {reaction.emoji} was added to message {reaction.message.id} by user {user.name}#{user.discriminator} {user.id}.")
     # execute add function
     await funcs[0](reaction, user)
 
@@ -219,7 +224,7 @@ async def on_reaction_remove(reaction, user):
     if funcs is False:
         return
     
-    log.debug(f"Reaction {reaction.emoji} was removed from message {reaction.message.id} by user {user.name}#{user.discriminator}.")
+    log.info(f"Reaction {reaction.emoji} was removed from message {reaction.message.id} by user {user.name}#{user.discriminator} {user.id}.")
     # execute remove function
     await funcs[1](reaction, user)
 
