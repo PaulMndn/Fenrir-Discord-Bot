@@ -72,13 +72,20 @@ def rem_event(guild: discord.Guild, date: dt.datetime):
     '''
     logging.debug(f"Removing event {date} from event db for guild {guild.name}, ID: {guild.id}.")
     with shelve.open(str(cfg.DATA_DIR / str(guild.id) / "events")) as events:
-        try:
-            event = next(e for e in events.values() if e.date_time == date)
-            deleted_event = events.pop(event.key)
-        except KeyError:
-            logging.error(f"No event with {date} exists in the event planner.")
-            return False, "KeyError"
-    return True, event
+        event_key = next((e.key for e in events.values() if e.date_time == date), None)
+        if event_key is None:
+            logging.error(f"No event for {date} found in the event planner.")
+            return False, "No event planned for that time."
+        deleted_event = events.pop(event_key)
+    return True, deleted_event
+
+def rem_event_from_msg(message):
+    "Remove event in db from a deleted event message."
+    guild = message.guild
+    with shelve.open(str(cfg.DATA_DIR / str(guild.id) / "events")) as events:
+        if str(message.id) not in events:
+            return
+        return events.pop(str(message.id))
 
 
 async def dm_admin(client, message:str, embed=None):
