@@ -3,7 +3,7 @@ import datetime as dt
 
 
 class Event:
-    def __init__(self, title: str, date_time: dt.datetime, event_channel_id: int, msg_id: int):
+    def __init__(self, title: str, date_time: dt.datetime, event_channel_id: int, msg_id: int = None):
         self.title = title
         self.date_time = date_time
         self.event_channel_id = event_channel_id
@@ -20,7 +20,7 @@ class Event:
         elif isinstance(other, dt.date):
             return self.date_time.date() < other
         else:
-            raise NotImplementedError(f"Can't compare type '{type(self)}'' to type '{type(other)}'.")
+            raise NotImplementedError(f"Can't compare type '{type(self)}'v to type '{type(other)}'.")
 
     def __le__(self, other):
         if isinstance(other, Event):
@@ -30,7 +30,7 @@ class Event:
         elif isinstance(other, dt.date):
             return self.date_time.date() <= other
         else:
-            raise NotImplementedError(f"Can't compare type '{type(self)}'' to type '{type(other)}'.")
+            raise NotImplementedError(f"Can't compare type '{type(self)}' to type '{type(other)}'.")
     
     def __ge__(self, other):
         if isinstance(other, Event):
@@ -40,7 +40,7 @@ class Event:
         elif isinstance(other, dt.date):
             return self.date_time.date() >= other
         else:
-            raise NotImplementedError(f"Can't compare type '{type(self)}'' to type '{type(other)}'.")
+            raise NotImplementedError(f"Can't compare type '{type(self)}' to type '{type(other)}'.")
     
     def __eq__(self, other):
         if isinstance(other, Event):
@@ -50,11 +50,12 @@ class Event:
         elif isinstance(other, dt.date):
             return self.date_time.date() == other
         else:
-            raise NotImplementedError(f"Can't compare type '{type(self)}'' to type '{type(other)}'.")
+            raise NotImplementedError(f"Can't compare type '{type(self)}' to type '{type(other)}'.")
     
     @property
     def key(self):
-        return None if self.msg_id is None else str(self.msg_id)
+        '''Message ID if it exists. Otherwise the datetime in iso-format.'''
+        return str(self.msg_id) if self.msg_id is not None else self.date_time.isoformat()
 
 
 
