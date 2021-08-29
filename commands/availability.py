@@ -100,11 +100,13 @@ async def yes_reaction_add(reaction, user):
         except KeyError:
             # reaction is not 1-7, so it's removed
             await reaction.clear()
+            log.info(f"Reaction {reaction.emoji} is invalid and was removed.")
             return
 
         if not a.yes_add(day, user):
             # invalid reaction number for the query (eg. reaction 3 when querried for 4-7)
             await reaction.clear()
+            log.info(f"Reaction {reaction.emoji} is invalid and was removed.")
     
 async def yes_reaction_remove(reaction, user):
     guild = reaction.message.guild
@@ -122,11 +124,13 @@ async def no_reaction_add(reaction, user):
         except KeyError:
             # reaction is not 1-7, so it's removed
             await reaction.clear()
+            log.info(f"Reaction {reaction.emoji} is invalid and was removed.")
             return
         
         if not a.no_add(day, user):
             # invalid reaction number for the query (eg. reaction 3 when querried for 4-7)
             await reaction.clear()
+            log.info(f"Reaction {reaction.emoji} is invalid and was removed.")
     
 async def no_reaction_remove(reaction, user):
     guild = reaction.message.guild
@@ -139,40 +143,44 @@ async def no_reaction_remove(reaction, user):
 
 
 
-async def execute(ctx, params):
-    guild = ctx['guild']
-    channel = ctx['channel']
-
-    if len(params) == 0:
-        try:
-            a = cfg.availabilities[guild.id]
-        except KeyError:
-            return True, "No availabilities stored yet."
-        # return True, f"{a.yes}\n{a.no}" # temporary
-        embed = discord.Embed(title = "Availabilities", url=a.init_msg.jump_url)
-        for day in a.yes.keys():
-            value = "\n".join(
-                    [f"✅ {u.name}" for u in a.yes[day]]
-                    + [f"❌ {u.name}" for u in a.no[day]]
-                )
-            embed.add_field(
-                name=number_weekday[day], 
-                value = value if value != "" else "❌"*3
+async def send_availabilities(guild, channel):
+    try:
+        a = cfg.availabilities[guild.id]
+    except KeyError:
+        return True, "No availabilities stored yet."
+    # return True, f"{a.yes}\n{a.no}" # temporary
+    embed = discord.Embed(title = "Availabilities", url=a.init_msg.jump_url)
+    for day in a.yes.keys():
+        value = "\n".join(
+                [f"✅ {u.name}" for u in a.yes[day]]
+                + [f"❌ {u.name}" for u in a.no[day]]
             )
-        embed.set_footer(text = f"Query from {a.yes_msg.created_at.date()}")
-        ref = None if not channel == a.init_msg.channel else a.init_msg
-        await channel.send(embed=embed, reference=ref)
+        embed.add_field(
+            name=number_weekday[day], 
+            value = value if value != "" else "No replies"
+        )
+    embed.set_footer(text = f"Query from {a.yes_msg.created_at.date()}")
+    ref = None if not channel == a.init_msg.channel else a.init_msg
+    await channel.send(embed=embed, reference=ref)
 
-        return True, "NO RESPONSE"
-    
-    if len(params) == 1:
-        from_day = params[0]
-        to_day = from_day
-    else:
-        from_day = params[0]
-        to_day = params[1]
+    return True, "NO RESPONSE"
+
+
+def parse_params(params):
+    '''Parse parameters and check if they are valide.
+
+    Args:
+        params (`list`): list of given parameters as string
+
+    Retruns:
+        `(True, Tuple)` if success. `Tuple` of start_day and end_day.
+
+        `(False, string)` otherwise. Error message in `string`.'''
+    from_day = params[0]
+    to_day = params[1] if len(params) > 1 else from_day
     
     try:
+        # parse input
         from_day = int(from_day)
         to_day = int(to_day)
         if not (from_day in range(1,8) and to_day in range(1,8)):
@@ -182,7 +190,18 @@ async def execute(ctx, params):
 
     if not to_day >= from_day:
         return False, "Second parameter must be greater or equal to the first one"
+    
+    return True, (from_day, to_day)
 
+
+async def ask_availabilities(params, guild, channel):
+    s,r = parse_params(params)
+
+    if not s:
+        return s,r
+    
+    from_day, to_day = r
+    
     msg = await channel.send("React below on which days you can or can't play on. 1-Monday ... 7-Sunday")
     msg_yes = await channel.send("I can play on...")
     msg_no = await channel.send("I can **not** play on...")
@@ -190,10 +209,9 @@ async def execute(ctx, params):
         await msg_yes.add_reaction(number_emoji[day])
         await msg_no.add_reaction(number_emoji[day])
     
-    
     availability = Availability(msg, msg_yes, msg_no, (from_day,to_day))
     cfg.availabilities[guild.id] = availability
-    log.debug("Availability object stored in variable (volitile).")
+    log.debug("Availability object stored in variable (volatile).")
 
         
     utils.add_react_msg(guild, msg_yes, yes_reaction_add, yes_reaction_remove)
@@ -201,6 +219,19 @@ async def execute(ctx, params):
     log.debug("Both messages added to shelve to keep track of messages that we want to listen to reactions on.")
 
     return True, "NO RESPONSE"
+
+
+
+
+
+async def execute(ctx, params):
+    guild = ctx['guild']
+    channel = ctx['channel']
+
+    if len(params) == 0:
+        return await send_availabilities(guild, channel)
+    else:
+        return await ask_availabilities(params, guild, channel)
 
 
 
