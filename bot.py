@@ -19,9 +19,9 @@ handler = RotatingFileHandler(
     encoding="utf-8"
 )
 handler.setFormatter(formatter)
-handler.setLevel(logging.DEBUG)
+handler.setLevel(logging.INFO)
 log = logging.getLogger()
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 log.addHandler(handler)
 
 
@@ -106,10 +106,10 @@ async def on_message(message):
                     await func.dm_admin(client, line)
 
 
-    if not message.channel.id == cfg.BOT_TEST_CHANNEL_ID:
-        # only react to messges in BOT_TEST_CHANNEL
-        # for testing purposes
-        return
+    # if not message.channel.id == cfg.BOT_TEST_CHANNEL_ID:
+    #     # only react to messges in BOT_TEST_CHANNEL
+    #     # for testing purposes
+    #     return
 
 
     prefix_p = cfg.PREFIX
@@ -232,7 +232,7 @@ async def on_reaction_remove(reaction, user):
 
 
 
-client.run(DEV_TOKEN)
+client.run(TOKEN)
 
 
 
