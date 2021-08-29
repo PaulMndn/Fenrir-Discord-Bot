@@ -3,7 +3,6 @@ from urllib.parse import quote as _uriquote
 import aiohttp
 import json
 import asyncio
-from functools import cache, cached_property
 import time
 import datetime as dt
 

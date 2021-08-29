@@ -164,7 +164,7 @@ async def on_message(message):
             raise
 
         if success:
-            log.info(f"Successfully executed command. Response: {response}")
+            log.info(f"Successfully executed command. Response: {repr(response)}")
         
         if success and response != "NO RESPONSE":
             await message.channel.send(response)
