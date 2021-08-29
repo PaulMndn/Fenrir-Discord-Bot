@@ -52,7 +52,7 @@ async def execute(ctx, params):
 
 command = Cmd(
     execute=execute,
-    help_text="",
+    help_text=help_text,
     params_required=0,
     team_required=True,
     admin_required=False
