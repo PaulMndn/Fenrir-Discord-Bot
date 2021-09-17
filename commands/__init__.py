@@ -12,7 +12,7 @@ from . import (
     settings,
 )
 
-
+__version__ = "0.1.0"
 
 commands = {
     "availability": availability.command,
@@ -51,3 +51,4 @@ async def run(c, params, ctx):
         return False, f"An unknown Error occured while ececuting command `{c}`"
     
     return r
+
