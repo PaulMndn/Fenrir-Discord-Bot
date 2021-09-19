@@ -11,6 +11,12 @@ import utils
 import functions as func
 import commands
 
+
+logging.getLogger("discord").setLevel(logging.WARNING)
+
+
+IS_DEV = cfg.CONFIG['is_dev']
+
 LOG_FILE = "log/bot.log"
 formatter = logging.Formatter("%(asctime)s %(levelname)s - %(name)s: %(message)s")
 handler = RotatingFileHandler(
@@ -21,9 +27,8 @@ handler = RotatingFileHandler(
     encoding="utf-8"
 )
 handler.setFormatter(formatter)
-handler.setLevel(logging.INFO)
 log = logging.getLogger()
-log.setLevel(logging.INFO)
+log.setLevel(logging.INFO if not IS_DEV else logging.DEBUG)
 log.addHandler(handler)
 
 
@@ -32,6 +37,8 @@ log.info("""
 ############     Starting...     ############
 #############################################"""
 )
+if IS_DEV:
+    log.info("Launching in Dev-Mode.")
 
 
 intents = discord.Intents.default()
@@ -42,9 +49,13 @@ intents.webhooks = False
 intents.invites = False
 intents.integrations = False
 
-DEV_TOKEN = cfg.CONFIG["dev_token"]
-TOKEN = cfg.CONFIG["token"]
-# print(TOKEN)
+if IS_DEV:
+    try:
+        TOKEN = cfg.CONFIG["dev_token"]
+    except KeyError:
+        log.fatal("Application is running in dev-mode but no dev token is available in config.json.")
+else:
+    TOKEN = cfg.CONFIG["token"]
 
 client = discord.Client(intents = intents)
 
@@ -108,10 +119,10 @@ async def on_message(message):
                     await func.dm_admin(client, line)
 
 
-    # if not message.channel.id == cfg.BOT_TEST_CHANNEL_ID:
-    #     # only react to messges in BOT_TEST_CHANNEL
-    #     # for testing purposes
-    #     return
+    if IS_DEV and not message.channel.id == cfg.BOT_TEST_CHANNEL_ID:
+        # only react to messges in BOT_TEST_CHANNEL
+        # for testing purposes
+        return
 
 
     prefix_p = cfg.PREFIX

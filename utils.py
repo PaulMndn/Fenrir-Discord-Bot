@@ -12,10 +12,10 @@ log = logging.getLogger(__name__)
 
 def get_config():
     'import config.json'
-    log.info("Import config.json")
+    # log.info("Import config.json")
     cf = cfg.SCRIPT_DIR / "config.json"
     if not cf.exists():
-        log.critical("Config file does not exist! Programm will shut down.")
+        print("Config file does not exist! Programm will shut down.")
         import sys
         sys.exit()
     
