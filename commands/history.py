@@ -40,17 +40,23 @@ async def execute(ctx, params):
     
     seasons = await vrml.seasons("EchoArena")
     current_season = seasons[-1]    # get latest season
+
     p_teams: list[vrml.PartialTeam] = await vrml.search_team("EchoArena", team_name, region = "EU", season=current_season.id)
     if not p_teams:
         log.error(f"No teams were found under the name {team_name}.")
         await r.edit(content="No teams were found.")
         return True, "NO RESPONSE"
     elif len(p_teams) > 1:
-        log.error(f"Multiple Teams were found under the name {team_name}.")
-        await r.edit(content="The team search term is not unambiguous. Please try again.")
-        return True, "NO RESPONSE"
+        if any(i.name == team_name for i in p_teams):
+            p_team = next(team for team in p_teams if team.name == team_name)
+        else:
+            log.warning(f"Multiple Teams were found under the name {team_name}.")
+            await r.edit(content="The team search term is not unambiguous. Please specify the exact team.\n" \
+                + f"Found Teams: {', '.join(team.name for team in p_teams)}")
+            return True, "NO RESPONSE"
+    else:
+        p_team = p_teams[0]
     
-    p_team = p_teams[0]
     team = await p_team.fetch()
     history = await team.matches_history()
 
@@ -67,8 +73,8 @@ async def execute(ctx, params):
         if match.season_name != current_season.name:
             continue
         line = [match.scheduled_date.date().isoformat()+":"]
-        if match.home_team.name == team_name:
-            # searched team is home team
+        if match.home_team.name == team.name:
+            # found team is home team
             line.append(match.home_team.name)
             line.append(f"{match.home_team_score} - {match.away_team_score}")
             line.append(match.away_team.name)
@@ -78,7 +84,7 @@ async def execute(ctx, params):
             else:
                 line.insert(0, "❌")
         else:
-            # searched team is away team
+            # found team is away team
             line.append(match.away_team.name)
             line.append(f"{match.away_team_score} - {match.home_team_score}")
             line.append(match.home_team.name)
