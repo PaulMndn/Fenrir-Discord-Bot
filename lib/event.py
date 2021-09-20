@@ -10,7 +10,7 @@ class Event:
         self.msg_id = msg_id
     
     def __str__(self):
-        return f"**{self.title}** {self.date_time.strftime('%d.%m.%Y at %I:%M%p')}."
+        return f"**{self.title}** {self.date_time.strftime('%d.%m.%Y at %I:%M%p')}"
     
     def __lt__(self, other):
         if isinstance(other, Event):
