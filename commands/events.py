@@ -38,9 +38,13 @@ async def execute(ctx, params):
             return True, "There are no events in the planner."
         else:
             return True, "There are no upcoming events planned."
-        
     
     embed = discord.Embed(title = "All events:" if all else "Upcoming events:")
+
+    if len(event_list) > 25:
+        event_list = event_list[-25,]
+        embed.description = "Excerpt of most recent 25 events."
+    
     for event in event_list:
         embed.add_field(name=event.title, value=event.date_time.strftime(format="%d.%m.%Y %I:%M%p"), inline=False)
     
