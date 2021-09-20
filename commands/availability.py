@@ -137,7 +137,7 @@ async def no_reaction_remove(reaction, user):
     a = cfg.availabilities[guild.id]
     if reaction.message.id == a.no_msg.id:
         day = emoji_number[reaction.emoji]
-        a.no_add(day, user)
+        a.no_rem(day, user)
 
 
 

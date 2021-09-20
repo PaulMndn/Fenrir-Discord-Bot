@@ -3,6 +3,11 @@ import pathlib
 import json
 import utils
 
+
+version = "1.0.3"
+
+
+
 SCRIPT_DIR = pathlib.Path()
 DATA_DIR = SCRIPT_DIR / "data"
 # SCRIPT_DIR = SCRIPT_DIR + ("/" if not SCRIPT_DIR.endswith("/") else "")
@@ -11,7 +16,7 @@ CONFIG = utils.get_config()
 
 BOT_TEST_CHANNEL_ID = CONFIG["bot_test-channel"]
 
-PREFIX = "!"
+PREFIX = "!" if not CONFIG['is_dev'] else "$"
 
 
 # "MEMBER" will be replaced by the mention-tag
