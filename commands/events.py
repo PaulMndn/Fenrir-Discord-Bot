@@ -42,7 +42,7 @@ async def execute(ctx, params):
     embed = discord.Embed(title = "All events:" if all else "Upcoming events:")
 
     if len(event_list) > 25:
-        event_list = event_list[-25,]
+        event_list = event_list[-25:]
         embed.description = "Excerpt of most recent 25 events."
     
     for event in event_list:
