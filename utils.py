@@ -41,7 +41,7 @@ def read_db(guild, key):
 def ensure_guild_folder(guild):
     "Make sure guild data folder exists."
     dir = cfg.DATA_DIR / str(guild.id)
-    if not dir.exists:
+    if not dir.exists():
         dir.mkdir()
 
 
