@@ -14,7 +14,7 @@ DATA_DIR = SCRIPT_DIR / "data"
 
 CONFIG = utils.get_config()
 
-BOT_TEST_CHANNEL_ID = CONFIG["bot_test-channel"]
+TEST_GUILD_ID = CONFIG["bot_test_guild"]
 
 PREFIX = "!" if not CONFIG['is_dev'] else "$"
 

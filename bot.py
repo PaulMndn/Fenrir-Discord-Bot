@@ -119,8 +119,8 @@ async def on_message(message):
                     await func.dm_admin(client, line)
 
 
-    if IS_DEV and not message.channel.id == cfg.BOT_TEST_CHANNEL_ID:
-        # only react to messges in BOT_TEST_CHANNEL
+    if IS_DEV and not message.guild.id == cfg.TEST_GUILD_ID:
+        # only react to messges in test-guild
         # for testing purposes
         return
 
@@ -134,7 +134,7 @@ async def on_message(message):
         # message has prefix, so meant for bot
         log.info(f"Recieved message from {message.author.name}#{message.author.discriminator} {message.author.id}: "
             + f"{message.content}    "
-            + f"Guild: {message.guild.name}, {message.guild.id},"
+            + f"Guild: {message.guild.name}, {message.guild.id}, "
             + f"Channel: {message.channel.name}, {message.channel.id}"
         )
         msg = message.content[len(prefix):].strip()
