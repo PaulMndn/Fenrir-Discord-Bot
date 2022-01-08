@@ -16,16 +16,20 @@ help_text = f'''Add a new event entry to the calendar.
 
 The message needs to include a title followed by a time and optionally a date. \
 Is no date parameter given, the current date is assumed.
-**British Time** is assumed as timezone.
+Time is not time zone sensitive.
 
 Usage:
-```<PREFIX><COMMAND> <event_title> on <event_date> at <event_time>
-<PREFIX><COMMAND> <event_title> at <event_time> [on <event_date>]```
+```
+<PREFIX><COMMAND> <event_title> on <event_date> at <event_time>
+<PREFIX><COMMAND> <event_title> at <event_time> [on <event_date>]
+```\
 
 Examples:
-```<PREFIX><COMMAND> Scrim against Team on 22.05.2021 at 07:00pm
+```
+<PREFIX><COMMAND> Scrim against Team on 22.05.2021 at 07:00pm
 <PREFIX><COMMAND> The end of the world! at 07:00 pm on 21.12.2012
-<PREFIX><COMMAND> Training at 07:00AM```'''
+<PREFIX><COMMAND> Training at 07:00AM
+```'''
 
 
 async def execute(ctx, params):

@@ -12,7 +12,7 @@ help_text = """Write overview over upcoming events.
 If parameter `all` is given, all events are listed even ones that are already in past.
 
 Usage:
-```<PREFIX><COMMAND> [all]```
+```<PREFIX><COMMAND> [all]```\
 
 Examples:
 ```<PREFIX><COMMAND>

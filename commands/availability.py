@@ -9,14 +9,15 @@ from commands.base import Cmd
 log = logging.getLogger(__name__)
 
 help_text = """I can keep track of availabilities for you. This is usefull for \
-finding available dates for matches.
+finding available dates for scsrims and matches.
 Use no parameters to get the availabilities for the last querry.
 Use one or two parametes to define the span of days you want to know the \
-availability for. The second parameter, if given, must be greater.
+availability for. The second parameter, if given, must be greater or equal \
+than the first.
 Weekdays are identified by numbers: 1-Monday to 7-Sunday.
 
 Usage:
-```<PREFIX><COMMAND> [day_or_start_day] [end_day]```
+```<PREFIX><COMMAND> [day_or_start_day] [end_day]```\
 
 Examples:
 ```<PREFIX><COMMAND>

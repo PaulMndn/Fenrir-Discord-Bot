@@ -15,7 +15,7 @@ If no team is specified, the default team is used. This can be changed via \
 the settings command.
 
 Usage:
-```<PREFIX><COMMAND> [team_name]```
+```<PREFIX><COMMAND> [team_name]```\
 
 Examples:
 ```<PREFIX><COMMAND>

@@ -16,10 +16,10 @@ Following settings exist:
 events_channel      Channel to post events in. Tag new channel when modifying.
 team_role           Role with permissions to team commands. @Role when modifying.
 team_name           The name of the team. This is used as default for the `history` command.
-```
+```\
 
 USAGE: 
-```<PREFIX><COMMAND> [setting] [new_value]```
+```<PREFIX><COMMAND> [setting] [new_value]```\
 
 EXAMPLES:
 ```<PREFIX><COMMAND>

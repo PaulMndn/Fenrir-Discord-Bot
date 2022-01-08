@@ -14,7 +14,7 @@ Event is identified by date and time.
 Tip: Simply copy & paste the time from the events overview behind the command.
 
 Usage: 
-```<PREFIX><COMMAND> <event_date> <event_time>```
+```<PREFIX><COMMAND> <event_date> <event_time>```\
 date format: dd.mm.yyyy
 time format: hh:mm"AM"/"PM"
 
