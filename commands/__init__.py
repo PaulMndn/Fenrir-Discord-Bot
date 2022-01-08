@@ -1,4 +1,6 @@
 import discord
+
+from lib.errors import CommandError
 # import commands
 from . import (
     availability,
@@ -29,25 +31,21 @@ commands = {
 async def run(c, params, ctx):
     prefix = ctx["prefix"]
     if c not in commands:
-        r = f"Unknown command: `{prefix}{c}`"
-        return False, r
+        raise CommandError(f"Unknown command: `{prefix}{c}`")
     cmd = commands[c]
 
     if cmd.admin_required and not ctx["admin"]:
-        return False, "Sorry. You don't have the required permissions for this command."
+        raise CommandError("Sorry. You don't have the required permissions for this command.")
     
     if cmd.team_required and not (ctx['team'] or ctx['admin']):
-        return False, "Sorry. You don't have the required permissions for this command."
+        raise CommandError("Sorry. You don't have the required permissions for this command.")
     
     if len(params) < cmd.params_required:
-        return False, f"Not enough parameters were given.\n{len(params)} parameters were given, {cmd.params_required} parameters were expected."
+        raise CommandError(f"Not enough parameters were given.\n{len(params)} parameters were given, {cmd.params_required} parameters were expected.")
 
     try:
-        r = await cmd.execute(ctx, params)
+        resp = await cmd.execute(ctx, params)
     except discord.errors.Forbidden:
         return False, "I don't have permission to do that."
     
-    if r is None:
-        return False, f"An unknown Error occured while ececuting command `{c}`"
-    
-    return r
+    return resp

@@ -7,6 +7,7 @@ import random
 import traceback
 
 import cfg
+from lib.errors import CommandError
 import utils
 import functions as func
 import commands
@@ -168,28 +169,18 @@ async def on_message(message):
 
         try:
             log.debug("Start executing command.")
-            success, response = await commands.run(cmd, params, ctx)
+            response = await commands.run(cmd, params, ctx)
+            if response is not None:
+                await channel.send(response)
+            log.info(f"Successfully executed command. Response: {repr(response)}")
+        except CommandError as e:
+            await channel.send(f"An error occured.\n{e}")
+            log.error(f"Command: {message.content} Response: {e}")
         except Exception as e:
             log.error(f"An error occured when executing the command {message.content}: \n{traceback.format_exc()}")
-            await message.channel.send("An error occured.")
+            await message.channel.send("An unknown error occured.")
             raise
 
-        if success:
-            log.info(f"Successfully executed command. Response: {repr(response)}")
-        
-        if success and response != "NO RESPONSE":
-            await message.channel.send(response)
-            return True
-        
-        if not success:
-            if response != "NO RESPONSE":
-                await message.channel.send(f":no_entry_sign: **An error occured.** :no_entry_sign:\n{response}")
-                log.error(f"Command: {message.content} Response: {response}")
-                return False
-            else:
-                await message.channel.send(":no_entry_sign: **An unnown error occured.** :no_entry_sign:")
-                log.error(f"Unknown error while executing the command (no success, no response): {msg}")
-                return False
 
 
 @client.event

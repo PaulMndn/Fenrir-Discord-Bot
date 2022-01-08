@@ -6,6 +6,7 @@ import traceback
 
 from commands.base import Cmd
 from functions import add_event, get_events
+from lib.errors import CommandError
 from utils import get_guild_settings
 from lib.event import Event
 
@@ -41,7 +42,7 @@ async def execute(ctx, params):
     team_role_id = guild_settings['team_role']
     if events_channel_id is None:
         # no events_channel
-        return False, "Please select a channel for the event planner before creating events using the `settings` command."
+        raise CommandError("Please select a channel for the event planner before creating events using the `settings` command.")
     events_channel = guild.get_channel(events_channel_id)
     team_role = guild.get_role(team_role_id)
 
@@ -55,7 +56,7 @@ async def execute(ctx, params):
     match = re.match(p, string)
 
     if not match:
-        return False, f"Parameters for command `{ctx['prefix']}{ctx['command']}` don't match the format. Please try again or see help."
+        raise CommandError(f"Parameters for command `{ctx['prefix']}{ctx['command']}` don't match the format. Please try again or see help.")
     
     data = {
         "title": match.group(1),
@@ -76,7 +77,7 @@ async def execute(ctx, params):
 
     if any(event == date_time for event in get_events(guild)):
         # already an event planed for this time
-        return False, f"There is already an event scheduled for {date_time}."
+        raise CommandError(f"There is already an event scheduled for {date_time}.")
 
     msg = await events_channel.send("Creating new event")
     event = Event(title, date_time, events_channel_id, msg.id)
@@ -86,12 +87,12 @@ async def execute(ctx, params):
         import sys
         log.error(f"Exception during saving of event to database: {traceback.format_exc()}")
         await msg.delete()
-        return False, "Error during event creation."
+        raise CommandError("Error during event creation.")
     
     content = (f"{team_role.mention} " if team_role is not None else "") + str(event)
     await msg.edit(content=content)
 
-    return True, f"{event} was added."
+    return f"{event} was added."
 
 
 

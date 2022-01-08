@@ -1,6 +1,7 @@
 from typing import Tuple
 import discord
 import logging
+from lib.errors import CommandError
 
 import utils
 import cfg
@@ -148,7 +149,7 @@ async def send_availabilities(guild, channel):
     try:
         a = cfg.availabilities[guild.id]
     except KeyError:
-        return True, "No availabilities stored yet."
+        return "No availabilities stored yet."
     # return True, f"{a.yes}\n{a.no}" # temporary
     embed = discord.Embed(title = "Availabilities", url=a.init_msg.jump_url)
     for day in a.yes.keys():
@@ -161,10 +162,9 @@ async def send_availabilities(guild, channel):
             value = value if value != "" else "No replies"
         )
     embed.set_footer(text = f"Query from {a.yes_msg.created_at.date()}")
-    ref = None if not channel == a.init_msg.channel else a.init_msg
+    ref = a.init_msg if channel == a.init_msg.channel else None
     await channel.send(embed=embed, reference=ref)
 
-    return True, "NO RESPONSE"
 
 
 def parse_params(params):
@@ -187,21 +187,16 @@ def parse_params(params):
         if not (from_day in range(1,8) and to_day in range(1,8)):
             raise ValueError
     except ValueError:
-        return False, "Parameter(s) must be an integer from 1 to 7."
+        raise CommandError("Parameter(s) must be an integer from 1 to 7.")
 
     if not to_day >= from_day:
-        return False, "Second parameter must be greater or equal to the first one"
+        raise CommandError("Second parameter must be greater or equal to the first one")
     
-    return True, (from_day, to_day)
+    return from_day, to_day
 
 
 async def ask_availabilities(params, guild, channel):
-    s,r = parse_params(params)
-
-    if not s:
-        return s,r
-    
-    from_day, to_day = r
+    from_day, to_day = parse_params(params)
     
     msg = await channel.send("React below on which days you can or can't play on. 1-Monday ... 7-Sunday")
     msg_yes = await channel.send("I can play on...")
@@ -219,7 +214,7 @@ async def ask_availabilities(params, guild, channel):
     utils.add_react_msg(guild, msg_no, no_reaction_add, no_reaction_remove)
     log.debug("Both messages added to shelve to keep track of messages that we want to listen to reactions on.")
 
-    return True, "NO RESPONSE"
+    return 
 
 
 

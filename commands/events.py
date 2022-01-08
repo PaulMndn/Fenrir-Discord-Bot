@@ -24,7 +24,7 @@ async def execute(ctx, params):
     all = False if not params or params[0].lower() != "all" else True
 
     if events == []:
-        return True, "You don't have any events planned."
+        return "You don't have any events planned."
     event_list = []
     for event in sorted(events):
         if all:
@@ -35,22 +35,20 @@ async def execute(ctx, params):
     
     if not event_list:
         if all:
-            return True, "There are no events in the planner."
+            return "There are no events in the planner."
         else:
-            return True, "There are no upcoming events planned."
+            return "There are no upcoming events planned."
     
-    embed = discord.Embed(title = "All events:" if all else "Upcoming events:")
+    embed = discord.Embed(title = "All events" if all else "Upcoming events")
 
     if len(event_list) > 25:
         event_list = event_list[-25:]
-        embed.description = "Excerpt of most recent 25 events."
+        embed.description = "Most recent 25 events."
     
     for event in event_list:
         embed.add_field(name=event.title, value=event.date_time.strftime(format="%d.%m.%Y %I:%M%p"), inline=False)
     
     await ctx['channel'].send(embed=embed)
-
-    return True, "NO RESPONSE"
 
 
 

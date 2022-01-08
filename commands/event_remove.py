@@ -3,6 +3,7 @@ import datetime as dt
 import logging
 
 from commands.base import Cmd
+from lib.errors import CommandError
 from utils import get_guild_settings
 from functions import rem_event
 
@@ -32,11 +33,13 @@ async def execute(ctx, params):
         date_time = dt.datetime.strptime(f"{date} {time}", "%d.%m.%Y %I:%M%p")
     except ValueError:
         log.error(f"Invalide parameter format for date and time: {date} {time}.")
-        return False, "Date and/or time format was not recognized."
+        raise CommandError("Date and/or time format was not recognized.")
 
-    success, event = rem_event(guild, date_time)
-    if not success:
-        return False, event
+    try:
+        event = rem_event(guild, date_time)
+    except KeyError:
+        logging.error(f"No event for {date_time} found in the event planner.")
+        raise CommandError("No event planned for that time.")
     
     try:
         await guild.get_channel(event.event_channel_id).get_partial_message(event.msg_id).delete()
@@ -47,7 +50,7 @@ async def execute(ctx, params):
         await ctx['channel'].send(f"Event message was not found in event channel (<#{event.event_channel_id}>) and thus could not be deleted.")
 
     
-    return True, f"Event {event} was removed from the event planner."
+    return f"Event {event} was removed from the event planner."
 
 
 

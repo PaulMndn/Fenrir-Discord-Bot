@@ -4,6 +4,7 @@ import logging
 
 from commands.base import Cmd
 import cfg
+from lib.errors import CommandError
 from utils import get_guild_settings, reset_guild_settings
 
 help_text = """Display and edit the bot settings for this server.
@@ -36,13 +37,13 @@ async def execute(ctx, params):
         settings = get_guild_settings(guild)
         ret = "Your current settings:\n```\n" + "\n".join(f"{s:<20}{v}" for s,v in settings.items()) + "\n```"
         logging.debug("Returning all settings with current values")
-        return True, ret
+        return ret
     
     elif len(params) == 1 and params[0] == "reset":
         old_settings = get_guild_settings(guild)
         old_settings = "\n".join(f"{k:<20}{v}" for k,v in old_settings.items())
         reset_guild_settings(guild)
-        return True, "Your settings have been reset to the default values.\n\n" \
+        return "Your settings have been reset to the default values.\n\n" \
             f"These were your settings before:\n```\n{old_settings}\n```"
 
     elif len(params) >= 2:
@@ -52,7 +53,7 @@ async def execute(ctx, params):
         guild_settings = get_guild_settings(guild)
         
         if setting not in guild_settings:
-            return False, f"Setting {setting} does not exist."
+            raise CommandError(f"Setting {setting} does not exist.")
 
         if setting in ["events_channel", "team_role"]:
             # for special settings. (These are set with tags/pings -> check, extract IDs)
@@ -60,10 +61,10 @@ async def execute(ctx, params):
             id = int(new_val.strip("<>#@!&"))
             if setting == "events_channel" and guild.get_channel(id) is None:
                 logging.error(f"Invalid channel to set as events_channel for guild {guild.name}, ID: {guild.id}")
-                return False, "Invalide channel"
+                raise CommandError("Invalide channel")
             elif setting == "team_role" and guild.get_role(id) is None:
                 logging.error(f"Invalid role to set as team_role for guild {guild.name}, ID: {guild.id}")
-                return False, "Invalide Channel"
+                raise CommandError("Invalide Channel")
         
             # update settings
             old_val = guild_settings[setting]
@@ -76,14 +77,14 @@ async def execute(ctx, params):
                 settings[setting] = new_val
                 logging.info(f"Changed setting {setting} from {old_val} to {new_val} for server {ctx['guild'].name}, ID: {ctx['guild'].id}.")
 
-        return True, f"{setting} was changed from {old_val} to {new_val}."
+        return f"{setting} was changed from {old_val} to {new_val}."
 
     else:
         # Invalid number of parameters
-        return False, "Invalid parameters. See help for more information."
+        raise CommandError("Invalid parameters. See help for more information.")
     
 
-
+# TODO: event_creation_ping
 
 
 command = Cmd(

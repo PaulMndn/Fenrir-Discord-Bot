@@ -1,6 +1,7 @@
 import discord
 import logging
 import utils
+import functions
 
 from commands.base import Cmd
 
@@ -15,7 +16,10 @@ async def execute(ctx, params):
         r = await ctx["channel"].send(utils.get_loading_msg())
     except discord.errors.Forbidden:
         log.error(f"Can't send message in channel {ctx['channel'].name}.")
-        return False, f"Can't send message in channel {ctx['channel'].name}."
+        await functions.dm_user(user= ctx['message'].author, 
+                                msg=f"Can't send message in channel {ctx['channel'].mention}.")
+        
+        return
     t1 = ctx["message"].created_at
     t2 = r.created_at
     rt = (t2-t1).total_seconds()
@@ -29,13 +33,13 @@ async def execute(ctx, params):
     embed.add_field(name="Guild region:", value=guild.region, inline=False)
     
     await r.edit(content="Pong!", embed=embed)
-    return True, "NO RESPONSE"
+    return
 
 
 
 command = Cmd(
     execute=execute,
-    help_text="",
+    help_text=help_text,
     params_required=0,
     team_required=False,
     admin_required=False

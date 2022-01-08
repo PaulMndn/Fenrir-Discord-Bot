@@ -1,5 +1,6 @@
 import discord
 from functions import match_history
+from lib.errors import CommandError
 import utils
 import cfg
 import random
@@ -32,8 +33,8 @@ async def execute(ctx, params):
         if team_name is None:
             await r.delete()
             log.error("No team name given and no default value is set.")
-            return False, "No default team name set."
-        log.debug("Stored team name used.")
+            raise CommandError("No team specified and no default team set. This can be changed in the settings.")
+        log.debug("Default team name used.")
     else:
         team_name = ctx['params_str']
     
@@ -41,11 +42,11 @@ async def execute(ctx, params):
     seasons = await vrml.seasons("EchoArena")
     current_season = seasons[-1]    # get latest season
 
-    p_teams: list[vrml.PartialTeam] = await vrml.search_team("EchoArena", team_name, region = "EU", season=current_season.id)
+    p_teams: list[vrml.PartialTeam] = await vrml.search_team("EchoArena", team_name, season=current_season.id)
     if not p_teams:
         log.error(f"No teams were found under the name {team_name}.")
-        await r.edit(content="No teams were found.")
-        return True, "NO RESPONSE"
+        await r.edit(content="No teams were found by that name.")
+        return
     elif len(p_teams) > 1:
         if any(i.name == team_name for i in p_teams):
             p_team = next(team for team in p_teams if team.name == team_name)
@@ -53,7 +54,7 @@ async def execute(ctx, params):
             log.warning(f"Multiple Teams were found under the name {team_name}.")
             await r.edit(content="The team search term is not unambiguous. Please specify the exact team.\n" \
                 + f"Found Teams: {', '.join(team.name for team in p_teams)}")
-            return True, "NO RESPONSE"
+            return
     else:
         p_team = p_teams[0]
     
@@ -64,9 +65,9 @@ async def execute(ctx, params):
     embed.set_author(
         name = team.name, 
         url = f"https://vrmasterleague.com/EchoArena/Teams/{team.id}",
-        icon_url = "https://vrmasterleague.com"+team.division_logo_url
+        icon_url = team.division_logo_url
     ) 
-    embed.set_thumbnail(url="https://vrmasterleague.com"+team.logo_url)
+    embed.set_thumbnail(url=team.logo_url)
 
     footer_lines = []
     for match in history:
@@ -99,7 +100,7 @@ async def execute(ctx, params):
 
     await r.edit(content="", embed=embed)
 
-    return True, "NO RESPONSE"
+    return
 
 
 
