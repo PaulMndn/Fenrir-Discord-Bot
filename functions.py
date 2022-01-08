@@ -93,13 +93,14 @@ async def dm_admin(client, message:str, embed=None):
     "Send direct message to admin."
     admin = client.get_user(cfg.CONFIG['admin_id'])
 
-    if admin.dm_channel is None:
-        await admin.create_dm()
-    
-    await admin.dm_channel.send(content=message,embed=embed)
-    
+    await dm_user(admin, message, embed)
 
 
+async def dm_user(user, msg, embed=None):
+    if user.dm_channel is None:
+        await user.create_dm()
+    
+    await user.dm_channel.send(content=msg, embed=embed)
 
 
 
