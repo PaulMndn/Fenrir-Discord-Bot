@@ -29,7 +29,7 @@ async def execute(ctx, params):
     r = await ctx["channel"].send(utils.get_loading_msg())
 
     if not params:
-        team_name = utils.get_guild_settings(ctx['guild'])['team_name']
+        team_name = ctx['settings']['team_name']
         if team_name is None:
             await r.delete()
             log.error("No team name given and no default value is set.")
@@ -61,7 +61,7 @@ async def execute(ctx, params):
     team = await p_team.fetch()
     history = await team.matches_history()
 
-    embed = discord.Embed(title="Match History")
+    embed = discord.Embed(title="Match History", description=current_season.name)
     embed.set_author(
         name = team.name, 
         url = f"https://vrmasterleague.com/EchoArena/Teams/{team.id}",

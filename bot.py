@@ -8,6 +8,7 @@ import traceback
 
 import cfg
 from lib.errors import CommandError
+import lib.settings
 import utils
 import functions as func
 import commands
@@ -150,6 +151,7 @@ async def on_message(message):
         ctx = {
             "client": client,
             "guild": guild,
+            "settings": lib.settings.GuildSettings(guild),
             "channel": channel,
             "command": cmd,
             "message": message,

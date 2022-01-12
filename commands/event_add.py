@@ -7,7 +7,6 @@ import traceback
 from commands.base import Cmd
 from functions import add_event, get_events
 from lib.errors import CommandError
-from utils import get_guild_settings
 from lib.event import Event
 
 log = logging.getLogger(__name__)
@@ -37,10 +36,10 @@ async def execute(ctx, params):
     guild: discord.Guild = ctx['guild']
     string = ctx["params_str"]
 
-    guild_settings = get_guild_settings(guild)
-    events_channel_id = guild_settings['events_channel']
-    team_role_id = guild_settings['team_role']
-    if events_channel_id is None:
+    settings = ctx['settings']
+    events_channel_id = settings['events_channel']
+    team_role_id = settings['team_role']
+    if events_channel_id is None: # TODO: accept no events_channel
         # no events_channel
         raise CommandError("Please select a channel for the event planner before creating events using the `settings` command.")
     events_channel = guild.get_channel(events_channel_id)

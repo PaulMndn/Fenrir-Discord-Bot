@@ -23,7 +23,7 @@ def get_config():
         return json.load(config)
 
 
-def read_db(guild, key):
+def read_db(guild, key):    # 
     fp = os.path.join(cfg.SCRIPT_DIR, "data", "database")
     with shelve.open(fp) as db:
         if not str(guild.id) in db:
@@ -46,7 +46,7 @@ def ensure_guild_folder(guild):
 
 
 def get_default_settings():
-    'get default settings from data/default.json'
+    'get default settings from data/default.json as `dict`'
     fp = str(cfg.DATA_DIR/"default_settings.json")
     with open(fp, "r") as default_settings:
         return json.load(default_settings)
@@ -96,4 +96,14 @@ def get_react_msg_funcs(guild, msg):
 def get_loading_msg():
     return random.choice(cfg.LOADING_MSGS)
 
+
+def text_to_bool(text):
+    """Case-insensitive conversion of string `"true"` or `"false"` 
+    to boolean `True` or `False`. Returns `None` if fails."""
+    if text.lower() == "true":
+        return True
+    if text.lower() == "false":
+        return False
+    else:
+        return None
 

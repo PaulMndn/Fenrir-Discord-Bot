@@ -4,7 +4,6 @@ import logging
 
 from commands.base import Cmd
 from lib.errors import CommandError
-from utils import get_guild_settings
 from functions import rem_event
 
 log = logging.getLogger(__name__)
