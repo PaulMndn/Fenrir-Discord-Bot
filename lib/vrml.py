@@ -310,11 +310,12 @@ async def search_team(game, query, **kwargs):
 
 async def seasons(game):
     '''Gets the seasons for the specified game name in the URL.
-        Args:
-            game: (str) Examples: Onward, EchoArena, Pavlov, Snapshot
-            
-        Returns:
-            `list` of `Season`
+    
+    Args:
+        game: (str) Examples: Onward, EchoArena, Pavlov, Snapshot
+        
+    Returns:
+        `list` of `Season`
     '''
     seasons = []
     for data in await get_seasons(game):
