@@ -50,7 +50,6 @@ def get_specific_help(ctx, cmd_name):
 async def execute(ctx, params):
     if not params:
         return get_general_help(ctx)
-    
     else:
         return get_specific_help(ctx, params[0])
 
