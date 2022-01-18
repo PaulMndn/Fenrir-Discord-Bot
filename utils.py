@@ -87,11 +87,11 @@ def add_react_msg(guild, msg, add_func, rem_func):
         react_msgs[str(msg.id)] = (add_func, rem_func)
         return True, "Message added to DB."
 
-def get_react_msg_funcs(guild, msg):
-    with shelve.open(str(cfg.DATA_DIR/str(guild.id)/"react_msgs")) as react_msgs:
-        if str(msg.id) not in react_msgs:
+def get_react_msg_funcs(guild_id, msg_id):
+    with shelve.open(str(cfg.DATA_DIR/str(guild_id)/"react_msgs")) as react_msgs:
+        if str(msg_id) not in react_msgs:
             return False
-        return react_msgs[str(msg.id)]
+        return react_msgs[str(msg_id)]
 
 def get_loading_msg():
     return random.choice(cfg.LOADING_MSGS)
@@ -107,3 +107,6 @@ def text_to_bool(text):
     else:
         return None
 
+
+async def none_func(*Args, **Kwargs):
+    pass
