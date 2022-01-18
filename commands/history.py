@@ -44,6 +44,11 @@ async def execute(ctx, params):
 
     p_teams: list[vrml.PartialTeam] = await vrml.search_team("EchoArena", team_name, season=current_season.id)
     if not p_teams:
+        # search season independent
+        p_teams: list[vrml.PartialTeam] = await vrml.search_team("EchoArena", team_name)
+    
+    if not p_teams:
+        # still nothing found
         log.error(f"No teams were found under the name {team_name}.")
         await r.edit(content="No teams were found by that name.")
         return
@@ -70,33 +75,37 @@ async def execute(ctx, params):
     embed.set_thumbnail(url=team.logo_url)
 
     footer_lines = []
-    for match in history:
-        if match.season_name != current_season.name:
-            continue
-        line = [match.scheduled_date.date().isoformat()+":"]
-        if match.home_team.name == team.name:
-            # found team is home team
-            line.append(match.home_team.name)
-            line.append(f"{match.home_team_score} - {match.away_team_score}")
-            line.append(match.away_team.name)
-            # insert win/lose indicator
-            if match.winning_team_id == match.home_team.id:
-                line.insert(0, "✅")
+    if any(match.season_name == current_season.name for match in history):
+        for match in history:
+            if match.season_name != current_season.name:
+                continue
+            line = [match.scheduled_date.date().isoformat()+":"]
+            if match.home_team.name == team.name:
+                # found team is home team
+                line.append(match.home_team.name)
+                line.append(f"{match.home_team_score} - {match.away_team_score}")
+                line.append(match.away_team.name)
+                # insert win/lose indicator
+                if match.winning_team_id == match.home_team.id:
+                    line.insert(0, "✅")
+                else:
+                    line.insert(0, "❌")
             else:
-                line.insert(0, "❌")
-        else:
-            # found team is away team
-            line.append(match.away_team.name)
-            line.append(f"{match.away_team_score} - {match.home_team_score}")
-            line.append(match.home_team.name)
-            # insert win/lose indicator
-            if match.winning_team_id == match.away_team.id:
-                line.insert(0, "✅")
-            else:
-                line.insert(0, "❌")
-        footer_lines.append("  ".join(line))
+                # found team is away team
+                line.append(match.away_team.name)
+                line.append(f"{match.away_team_score} - {match.home_team_score}")
+                line.append(match.home_team.name)
+                # insert win/lose indicator
+                if match.winning_team_id == match.away_team.id:
+                    line.insert(0, "✅")
+                else:
+                    line.insert(0, "❌")
+            footer_lines.append("  ".join(line))
     
-    embed.set_footer(text="\n".join(footer_lines))
+        embed.set_footer(text="\n".join(footer_lines))
+
+    else:
+        embed.set_footer(text="No matches recorded yet.")
 
     await r.edit(content="", embed=embed)
 
