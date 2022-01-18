@@ -4,6 +4,7 @@ from lib.errors import CommandError
 # import commands
 from . import (
     availability,
+    bugreport,
     event_add,
     event_remove,
     events,
@@ -18,6 +19,7 @@ from . import (
 
 commands = {
     "availability": availability.command,
+    "bugreport": bugreport.command,
     "add-event": event_add.command,
     "events": events.command,
     "help": help.command,
