@@ -39,11 +39,9 @@ async def execute(ctx, params):
     settings = ctx['settings']
     events_channel_id = settings['events_channel']
     team_role_id = settings['team_role']
-    if events_channel_id is None: # TODO: accept no events_channel
-        # no events_channel
-        raise CommandError("Please select a channel for the event planner before creating events using the `settings` command.")
-    events_channel = guild.get_channel(events_channel_id)
-    team_role = guild.get_role(team_role_id)
+
+    events_channel = guild.get_channel(events_channel_id) if events_channel_id is not None else False
+    team_role = guild.get_role(team_role_id) if team_role_id is not None else False
 
 
     # create regular expression and parse date and time input
@@ -78,20 +76,29 @@ async def execute(ctx, params):
         # already an event planed for this time
         raise CommandError(f"There is already an event scheduled for {date_time}.")
 
-    msg = await events_channel.send("Creating new event")
-    event = Event(title, date_time, events_channel_id, msg.id)
+    event = Event(title, date_time)
+    
+    if events_channel:
+        content = str(event)
+        if settings['event_creation_ping'] and team_role:
+            content += f" {team_role.mention}"
+        msg = await events_channel.send(content=content)
+        event.add_message(msg)
+
     try:
         add_event(guild, event)
     except Exception as e:
-        import sys
         log.error(f"Exception during saving of event to database: {traceback.format_exc()}")
-        await msg.delete()
+        try:
+            await msg.delete()
+        except NameError:
+            pass
         raise CommandError("Error during event creation.")
-    
-    content = (f"{team_role.mention} " if team_role is not None else "") + str(event)
-    await msg.edit(content=content)
 
-    return f"{event} was added."
+    reply = f"{event} was added." 
+    if events_channel and settings['event_creation_ping'] and not team_role:
+        reply += "\nTeam role was not pinged because no or an invalid role is stored in settings."
+    return reply
 
 
 
