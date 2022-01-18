@@ -3,7 +3,7 @@ import datetime as dt
 
 
 class Event:
-    def __init__(self, title: str, date_time: dt.datetime, event_channel_id: int, msg_id: int = None):
+    def __init__(self, title: str, date_time: dt.datetime, event_channel_id: int = None, msg_id: int = None):
         self.title = title
         self.date_time = date_time
         self.event_channel_id = event_channel_id
@@ -56,6 +56,10 @@ class Event:
     def key(self):
         '''Message ID if it exists. Otherwise the datetime in iso-format.'''
         return str(self.msg_id) if self.msg_id is not None else self.date_time.isoformat()
+    
+    def add_message(self, msg:discord.Message):
+        self.event_channel_id = msg.channel.id
+        self.msg_id = msg.id
 
 
 
