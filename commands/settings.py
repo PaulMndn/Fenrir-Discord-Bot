@@ -12,10 +12,12 @@ import utils
 log = logging.getLogger(__name__)
 
 
-help_text = """Display and edit the bot settings for this server.
+help_text = """Display and modify the bot's settings.
 
 Display the settings by using `<PREFIX><COMMAND>`.
 Modify a setting by adding the setting and value behind the command. Role or channel values need to be tagged (@Role, #channel).
+
+The settings/a setting may be reset by using `<PREFIX><COMMAND> reset [setting]`.
 
 Following settings exist:
 ```
@@ -34,7 +36,7 @@ USAGE:
 EXAMPLES:
 ```<PREFIX><COMMAND>
 <PREFIX><COMMAND> team_name Fenrir```
-""" #TODO: use member_join_msg, member_leave_msg, event_creation_ping, send_event_message
+"""
 
 
 def set_team_role(ctx, new_val):
