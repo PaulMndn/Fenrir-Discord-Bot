@@ -1,0 +1,9 @@
+{
+    "team_name":            null,
+    "team_role":            null,
+    "events_channel":       null,
+    "send_event_message":   false,
+    "event_creation_ping":  false,
+    "member_join_msg":      false,
+    "member_leave_msg":     false
+}
