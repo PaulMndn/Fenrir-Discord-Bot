@@ -33,9 +33,8 @@ commands = {
 }
 
 async def run(c, params, ctx):
-    prefix = ctx["prefix"]
     if c not in commands:
-        raise CommandError(f"Unknown command: `{prefix}{c}`")
+        return
     cmd = commands[c]
 
     if cmd.admin_required and not ctx["admin"]:
