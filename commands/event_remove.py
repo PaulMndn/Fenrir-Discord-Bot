@@ -40,13 +40,14 @@ async def execute(ctx, params):
         logging.error(f"No event for {date_time} found in the event planner.")
         raise CommandError("No event planned for that time.")
     
-    try:
-        await guild.get_channel(event.event_channel_id).get_partial_message(event.msg_id).delete()
-    except discord.NotFound:
-        log.warning(f"Event message for event '{event}' in planner channel \
-            ({guild.get_channel(event.event_channel_id).name} <#{event.event_channel_id}>) \
-            was not found and could not be deleted.")
-        await ctx['channel'].send(f"Event message was not found in event channel (<#{event.event_channel_id}>) and thus could not be deleted.")
+    if event.event_channel_id and event.message_id:
+        try:
+            await guild.get_channel(event.event_channel_id).get_partial_message(event.msg_id).delete()
+        except discord.NotFound:
+            log.warning(f"Event message for event '{event}' in planner channel \
+                ({guild.get_channel(event.event_channel_id).name} <#{event.event_channel_id}>) \
+                was not found and could not be deleted.")
+            await ctx['channel'].send(f"Event message was not found in event channel (<#{event.event_channel_id}>) and thus could not be deleted.")
 
     
     return f"Event {event} was removed from the event planner."
