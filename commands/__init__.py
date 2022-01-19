@@ -10,6 +10,7 @@ from . import (
     events,
     help,
     history,
+    invite,
     ping,
     potato,
     settings,
@@ -24,6 +25,7 @@ commands = {
     "events": events.command,
     "help": help.command,
     "history": history.command,
+    "invite":invite.command,
     "ping": ping.command,
     "potato": potato.command,
     "remove-event": event_remove.command,
@@ -31,9 +33,8 @@ commands = {
 }
 
 async def run(c, params, ctx):
-    prefix = ctx["prefix"]
     if c not in commands:
-        raise CommandError(f"Unknown command: `{prefix}{c}`")
+        return
     cmd = commands[c]
 
     if cmd.admin_required and not ctx["admin"]:
