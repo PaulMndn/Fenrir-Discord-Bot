@@ -23,7 +23,7 @@ def get_config():
         return json.load(config)
 
 
-def read_db(guild, key):
+def read_db(guild, key):    # 
     fp = os.path.join(cfg.SCRIPT_DIR, "data", "database")
     with shelve.open(fp) as db:
         if not str(guild.id) in db:
@@ -41,12 +41,12 @@ def read_db(guild, key):
 def ensure_guild_folder(guild):
     "Make sure guild data folder exists."
     dir = cfg.DATA_DIR / str(guild.id)
-    if not dir.exists:
+    if not dir.exists():
         dir.mkdir()
 
 
 def get_default_settings():
-    'get default settings from data/default.json'
+    'get default settings from data/default.json as `dict`'
     fp = str(cfg.DATA_DIR/"default_settings.json")
     with open(fp, "r") as default_settings:
         return json.load(default_settings)
@@ -87,13 +87,26 @@ def add_react_msg(guild, msg, add_func, rem_func):
         react_msgs[str(msg.id)] = (add_func, rem_func)
         return True, "Message added to DB."
 
-def get_react_msg_funcs(guild, msg):
-    with shelve.open(str(cfg.DATA_DIR/str(guild.id)/"react_msgs")) as react_msgs:
-        if str(msg.id) not in react_msgs:
+def get_react_msg_funcs(guild_id, msg_id):
+    with shelve.open(str(cfg.DATA_DIR/str(guild_id)/"react_msgs")) as react_msgs:
+        if str(msg_id) not in react_msgs:
             return False
-        return react_msgs[str(msg.id)]
+        return react_msgs[str(msg_id)]
 
 def get_loading_msg():
     return random.choice(cfg.LOADING_MSGS)
 
 
+def text_to_bool(text):
+    """Case-insensitive conversion of string `"true"` or `"false"` 
+    to boolean `True` or `False`. Returns `None` if fails."""
+    if text.lower() == "true":
+        return True
+    if text.lower() == "false":
+        return False
+    else:
+        return None
+
+
+async def none_func(*Args, **Kwargs):
+    pass

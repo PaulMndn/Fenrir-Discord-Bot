@@ -7,6 +7,8 @@ import random
 import traceback
 
 import cfg
+from lib.errors import CommandError
+import lib.settings
 import utils
 import functions as func
 import commands
@@ -117,10 +119,11 @@ async def on_message(message):
                         line = line[-2000:]
                     line = f"{line}"
                     await func.dm_admin(client, line)
+        return
 
 
-    if IS_DEV and not message.channel.id == cfg.BOT_TEST_CHANNEL_ID:
-        # only react to messges in BOT_TEST_CHANNEL
+    if IS_DEV and not message.guild.id == cfg.TEST_GUILD_ID:
+        # only react to messges in test-guild
         # for testing purposes
         return
 
@@ -134,7 +137,7 @@ async def on_message(message):
         # message has prefix, so meant for bot
         log.info(f"Recieved message from {message.author.name}#{message.author.discriminator} {message.author.id}: "
             + f"{message.content}    "
-            + f"Guild: {message.guild.name}, {message.guild.id},"
+            + f"Guild: {message.guild.name}, {message.guild.id}, "
             + f"Channel: {message.channel.name}, {message.channel.id}"
         )
         msg = message.content[len(prefix):].strip()
@@ -149,6 +152,7 @@ async def on_message(message):
         ctx = {
             "client": client,
             "guild": guild,
+            "settings": lib.settings.GuildSettings(guild),
             "channel": channel,
             "command": cmd,
             "message": message,
@@ -168,28 +172,18 @@ async def on_message(message):
 
         try:
             log.debug("Start executing command.")
-            success, response = await commands.run(cmd, params, ctx)
+            response = await commands.run(cmd, params, ctx)
+            if response is not None:
+                await channel.send(response)
+            log.info(f"Successfully executed command. Response: {repr(response)}")
+        except CommandError as e:
+            await channel.send(f"An error occured.\n{e}")
+            log.error(f"Command: {message.content} Response: {e}")
         except Exception as e:
             log.error(f"An error occured when executing the command {message.content}: \n{traceback.format_exc()}")
-            await message.channel.send("An error occured.")
+            await message.channel.send("An unknown error occured.")
             raise
 
-        if success:
-            log.info(f"Successfully executed command. Response: {repr(response)}")
-        
-        if success and response != "NO RESPONSE":
-            await message.channel.send(response)
-            return True
-        
-        if not success:
-            if response != "NO RESPONSE":
-                await message.channel.send(f":no_entry_sign: **An error occured.** :no_entry_sign:\n{response}")
-                log.error(f"Command: {message.content} Response: {response}")
-                return False
-            else:
-                await message.channel.send(":no_entry_sign: **An unnown error occured.** :no_entry_sign:")
-                log.error(f"Unknown error while executing the command (no success, no response): {msg}")
-                return False
 
 
 @client.event
@@ -202,17 +196,23 @@ async def on_message_delete(message):
 async def on_member_join(member):
     # if member.guild.id not in cfg.VALID_SERVERS:
     #     return
-    log.debug(f"Member {member.name}#{member.discriminator} joined server {member.guild.name} {member.guild.id}.")
-    msg = random.choice(cfg.JOIN_MSGS).replace("MEMBER", member.mention)
-    await member.guild.system_channel.send(msg)
+    if lib.settings.GuildSettings(member.guild)['member_join_msg']:
+        log.debug(f"Member {member.name}#{member.discriminator} joined server {member.guild.name} {member.guild.id}.")
+        msg = random.choice(cfg.JOIN_MSGS).replace("MEMBER", member.mention)
+        sys_channel = member.guild.system_channel
+        if sys_channel is not None:
+            await sys_channel.send(msg)
 
 @client.event
 async def on_member_remove(member):
     # if member.guild.id not in cfg.VALID_SERVERS:
     #     return
-    log.debug(f"Member {member.name}#{member.discriminator} left server {member.guild.name} {member.guild.id}.")
-    msg = random.choice(cfg.LEAVE_MSGS).replace("MEMBER", f"{member.name}#{member.discrimator}")
-    await member.guild.system_channel.send(msg)
+    if lib.settings.GuildSettings(member.guild)['member_leave_msg']:
+        log.debug(f"Member {member.name}#{member.discriminator} left server {member.guild.name} {member.guild.id}.")
+        msg = random.choice(cfg.LEAVE_MSGS).replace("MEMBER", f"{member.name}#{member.discriminator}")
+        sys_channel = member.guild.system_channel
+        if sys_channel is not None:
+            await sys_channel.send(msg)
 
 
 
@@ -220,7 +220,7 @@ async def on_member_remove(member):
 async def on_reaction_add(reaction, user):
     if user.bot:
         return
-    funcs = utils.get_react_msg_funcs(reaction.message.guild, reaction.message)
+    funcs = utils.get_react_msg_funcs(reaction.message.guild.id, reaction.message.id)
     if funcs is False:
         return
     
@@ -229,11 +229,30 @@ async def on_reaction_add(reaction, user):
     await funcs[0](reaction, user)
 
 
+# @client.event
+# async def on_raw_reaction_add(payload):
+#     try:
+#         user = payload.member
+#     except:
+#         user = client.get_guild(payload.guild_id).get_member(payload.user_id)
+#     reaction = next((r for r in (await client.get_channel(payload.channel_id).fetch_message(payload.message_id)).reactions if str(r.emoji) == str(payload.emoji)))
+#     if payload.member.bot:
+#         return
+#     funcs = utils.get_react_msg_funcs(payload.guild_id, payload.message_id)
+#     if funcs is False:
+#         return
+    
+#     log.info(f"Reaction {payload.emoji} was added to message {payload.message_id} by user {payload.member.name}#{payload.member.discriminator} {payload.member.id}.")
+#     # execute add function
+#     await funcs[0](reaction, user)
+
+
+
 @client.event
 async def on_reaction_remove(reaction, user):
     if user.bot:
         return
-    funcs = utils.get_react_msg_funcs(reaction.message.guild, reaction.message)
+    funcs = utils.get_react_msg_funcs(reaction.message.guild.id, reaction.message.id)
     if funcs is False:
         return
     

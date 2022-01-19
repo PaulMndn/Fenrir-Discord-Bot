@@ -6,7 +6,7 @@ import traceback
 
 from commands.base import Cmd
 from functions import add_event, get_events
-from utils import get_guild_settings
+from lib.errors import CommandError
 from lib.event import Event
 
 log = logging.getLogger(__name__)
@@ -16,30 +16,32 @@ help_text = f'''Add a new event entry to the calendar.
 
 The message needs to include a title followed by a time and optionally a date. \
 Is no date parameter given, the current date is assumed.
-**British Time** is assumed as timezone.
+Time is not time zone sensitive.
 
 Usage:
-```<PREFIX><COMMAND> <event_title> on <event_date> at <event_time>
-<PREFIX><COMMAND> <event_title> at <event_time> [on <event_date>]```
+```
+<PREFIX><COMMAND> <event_title> on <event_date> at <event_time>
+<PREFIX><COMMAND> <event_title> at <event_time> [on <event_date>]
+```\
 
 Examples:
-```<PREFIX><COMMAND> Scrim against Team on 22.05.2021 at 07:00pm
+```
+<PREFIX><COMMAND> Scrim against Team on 22.05.2021 at 07:00pm
 <PREFIX><COMMAND> The end of the world! at 07:00 pm on 21.12.2012
-<PREFIX><COMMAND> Training at 07:00AM```'''
+<PREFIX><COMMAND> Training at 07:00AM
+```'''
 
 
 async def execute(ctx, params):
     guild: discord.Guild = ctx['guild']
     string = ctx["params_str"]
 
-    guild_settings = get_guild_settings(guild)
-    events_channel_id = guild_settings['events_channel']
-    team_role_id = guild_settings['team_role']
-    if events_channel_id is None:
-        # no events_channel
-        return False, "Please select a channel for the event planner before creating events using the `settings` command."
-    events_channel = guild.get_channel(events_channel_id)
-    team_role = guild.get_role(team_role_id)
+    settings = ctx['settings']
+    events_channel_id = settings['events_channel']
+    team_role_id = settings['team_role']
+
+    events_channel = guild.get_channel(events_channel_id) if events_channel_id is not None else False
+    team_role = guild.get_role(team_role_id) if team_role_id is not None else False
 
 
     # create regular expression and parse date and time input
@@ -51,7 +53,7 @@ async def execute(ctx, params):
     match = re.match(p, string)
 
     if not match:
-        return False, f"Parameters for command `{ctx['prefix']}{ctx['command']}` don't match the format. Please try again or see help."
+        raise CommandError(f"Parameters for command `{ctx['prefix']}{ctx['command']}` don't match the format. Please try again or see help.")
     
     data = {
         "title": match.group(1),
@@ -72,22 +74,31 @@ async def execute(ctx, params):
 
     if any(event == date_time for event in get_events(guild)):
         # already an event planed for this time
-        return False, f"There is already an event scheduled for {date_time}."
+        raise CommandError(f"There is already an event scheduled for {date_time}.")
 
-    msg = await events_channel.send("Creating new event")
-    event = Event(title, date_time, events_channel_id, msg.id)
+    event = Event(title, date_time)
+    
+    if events_channel:
+        content = str(event)
+        if settings['event_creation_ping'] and team_role:
+            content += f" {team_role.mention}"
+        msg = await events_channel.send(content=content)
+        event.add_message(msg)
+
     try:
         add_event(guild, event)
     except Exception as e:
-        import sys
         log.error(f"Exception during saving of event to database: {traceback.format_exc()}")
-        await msg.delete()
-        return False, "Error during event creation."
-    
-    content = (f"{team_role.mention} " if team_role is not None else "") + str(event)
-    await msg.edit(content=content)
+        try:
+            await msg.delete()
+        except NameError:
+            pass
+        raise CommandError("Error during event creation.")
 
-    return True, f"{event} was added."
+    reply = f"{event} was added." 
+    if events_channel and settings['event_creation_ping'] and not team_role:
+        reply += "\nTeam role was not pinged because no or an invalid role is stored in settings."
+    return reply
 
 
 

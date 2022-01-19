@@ -18,5 +18,5 @@ class Cmd:
     def print_help(self):
         if self.help_text == "":
             self.help_text = "No help available for this command yet."
-        return True, self.help_text
+        return self.help_text
 

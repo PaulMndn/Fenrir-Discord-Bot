@@ -3,6 +3,7 @@ import random
 import json
 import discord
 import logging
+from lib.errors import CommandError
 import utils
 
 from cfg import CONFIG
@@ -39,8 +40,8 @@ async def execute(ctx, pararms):
             async with session.get(BASE_URL+"/recipes/complexSearch",params=search_params) as r:
                 if r.status != 200:
                     log.error(f"Bad API response on recipe search. Status: {r.status}, response: {await r.text(encoding='utf-8')}.")
-                    return False, "Bad API response. Please try again later.\n" \
-                        "if this issue persists, please contact the bot developer."
+                    raise CommandError("Bad API response. Please try again later.\n" \
+                        "if this issue persists, please contact the bot developer.")
                 data = json.loads(await r.text(encoding="utf-8"))
                 RECIPE_COUNT = int(data['totalResults'])
                 recipe = data['results'][0]
@@ -56,8 +57,8 @@ async def execute(ctx, pararms):
                 if r.status != 200:
                     log.error(f"Bad API response on recipe information. " \
                         + f"Status: {r.status}, response: {await r.text(encoding='utf-8')}.")
-                    return False, "Bad API response. Please try again later.\n" \
-                        + "if this issue persist, please contact the bot developer."
+                    raise CommandError("Bad API response. Please try again later.\n" \
+                        + "If this issue persist, please contact the bot developer.")
                 data = json.loads(await r.text(encoding="utf-8"))
 
                 ingredients = ["**INGREDIENTS**"]
@@ -119,10 +120,10 @@ async def execute(ctx, pararms):
         
         await msg.edit(content="", embed=embed)
 
-        return True, "NO RESPONSE"
+        return
 
     # ran out of tries
-    return False, "Unknkown Error occured. Please try again later."
+    raise CommandError("Unknkown error occured. Please try again later.")
 
 
 

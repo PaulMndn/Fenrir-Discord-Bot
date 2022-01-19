@@ -1,6 +1,6 @@
 # Custom
 config.json
-/data/*
+/data/*/
 /log/*
 
 # Byte-compiled / optimized / DLL files

@@ -8,6 +8,7 @@ import datetime as dt
 
 log = logging.getLogger(__name__)
 
+VRML_URL = "https://vrmasterleague.com"
 
 class Route:
     BASE = 'https://api.vrmasterleague.com'
@@ -204,7 +205,7 @@ class Team:
         self.worldwide_rank = data.pop('rankWorldwide', None)
         self.rank = data.pop('rank', None)
         self.division = data.pop('division', None)
-        self.division_logo_url = data.pop('divisionLogo', None)
+        self.division_logo_url = VRML_URL + data.pop('divisionLogo', None)
         self.games_played = data.pop('gp', None)
         self.wins = data.pop('w', None)
         self.ties = data.pop('t', None)
@@ -220,7 +221,7 @@ class Team:
         self.is_recruiting = data.pop('isRecruiting', None)
         self.id = data.pop('id', None)
         self.name = data.pop('name', None)
-        self.logo_url = data.pop('logo', None)
+        self.logo_url = VRML_URL + data.pop('logo', None)
         self.region_id = data.pop('regionID', None)
         self.region = data.pop('region', None)
     
@@ -309,11 +310,12 @@ async def search_team(game, query, **kwargs):
 
 async def seasons(game):
     '''Gets the seasons for the specified game name in the URL.
-        Args:
-            game: (str) Examples: Onward, EchoArena, Pavlov, Snapshot
-            
-        Returns:
-            `list` of `Season`
+    
+    Args:
+        game: (str) Examples: Onward, EchoArena, Pavlov, Snapshot
+        
+    Returns:
+        `list` of `Season`
     '''
     seasons = []
     for data in await get_seasons(game):

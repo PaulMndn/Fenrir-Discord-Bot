@@ -1,5 +1,6 @@
 import discord
 from functions import match_history
+from lib.errors import CommandError
 import utils
 import cfg
 import random
@@ -15,7 +16,7 @@ If no team is specified, the default team is used. This can be changed via \
 the settings command.
 
 Usage:
-```<PREFIX><COMMAND> [team_name]```
+```<PREFIX><COMMAND> [team_name]```\
 
 Examples:
 ```<PREFIX><COMMAND>
@@ -28,12 +29,12 @@ async def execute(ctx, params):
     r = await ctx["channel"].send(utils.get_loading_msg())
 
     if not params:
-        team_name = utils.get_guild_settings(ctx['guild'])['team_name']
+        team_name = ctx['settings']['team_name']
         if team_name is None:
             await r.delete()
             log.error("No team name given and no default value is set.")
-            return False, "No default team name set."
-        log.debug("Stored team name used.")
+            raise CommandError("No team specified and no default team set. This can be changed in the settings.")
+        log.debug("Default team name used.")
     else:
         team_name = ctx['params_str']
     
@@ -41,11 +42,16 @@ async def execute(ctx, params):
     seasons = await vrml.seasons("EchoArena")
     current_season = seasons[-1]    # get latest season
 
-    p_teams: list[vrml.PartialTeam] = await vrml.search_team("EchoArena", team_name, region = "EU", season=current_season.id)
+    p_teams: list[vrml.PartialTeam] = await vrml.search_team("EchoArena", team_name, season=current_season.id)
     if not p_teams:
+        # search season independent
+        p_teams: list[vrml.PartialTeam] = await vrml.search_team("EchoArena", team_name)
+    
+    if not p_teams:
+        # still nothing found
         log.error(f"No teams were found under the name {team_name}.")
-        await r.edit(content="No teams were found.")
-        return True, "NO RESPONSE"
+        await r.edit(content="No teams were found by that name.")
+        return
     elif len(p_teams) > 1:
         if any(i.name == team_name for i in p_teams):
             p_team = next(team for team in p_teams if team.name == team_name)
@@ -53,53 +59,57 @@ async def execute(ctx, params):
             log.warning(f"Multiple Teams were found under the name {team_name}.")
             await r.edit(content="The team search term is not unambiguous. Please specify the exact team.\n" \
                 + f"Found Teams: {', '.join(team.name for team in p_teams)}")
-            return True, "NO RESPONSE"
+            return
     else:
         p_team = p_teams[0]
     
     team = await p_team.fetch()
     history = await team.matches_history()
 
-    embed = discord.Embed(title="Match History")
+    embed = discord.Embed(title="Match History", description=current_season.name)
     embed.set_author(
         name = team.name, 
         url = f"https://vrmasterleague.com/EchoArena/Teams/{team.id}",
-        icon_url = "https://vrmasterleague.com"+team.division_logo_url
+        icon_url = team.division_logo_url
     ) 
-    embed.set_thumbnail(url="https://vrmasterleague.com"+team.logo_url)
+    embed.set_thumbnail(url=team.logo_url)
 
     footer_lines = []
-    for match in history:
-        if match.season_name != current_season.name:
-            continue
-        line = [match.scheduled_date.date().isoformat()+":"]
-        if match.home_team.name == team.name:
-            # found team is home team
-            line.append(match.home_team.name)
-            line.append(f"{match.home_team_score} - {match.away_team_score}")
-            line.append(match.away_team.name)
-            # insert win/lose indicator
-            if match.winning_team_id == match.home_team.id:
-                line.insert(0, "✅")
+    if any(match.season_name == current_season.name for match in history):
+        for match in history:
+            if match.season_name != current_season.name:
+                continue
+            line = [match.scheduled_date.date().isoformat()+":"]
+            if match.home_team.name == team.name:
+                # found team is home team
+                line.append(match.home_team.name)
+                line.append(f"{match.home_team_score} - {match.away_team_score}")
+                line.append(match.away_team.name)
+                # insert win/lose indicator
+                if match.winning_team_id == match.home_team.id:
+                    line.insert(0, "✅")
+                else:
+                    line.insert(0, "❌")
             else:
-                line.insert(0, "❌")
-        else:
-            # found team is away team
-            line.append(match.away_team.name)
-            line.append(f"{match.away_team_score} - {match.home_team_score}")
-            line.append(match.home_team.name)
-            # insert win/lose indicator
-            if match.winning_team_id == match.away_team.id:
-                line.insert(0, "✅")
-            else:
-                line.insert(0, "❌")
-        footer_lines.append("  ".join(line))
+                # found team is away team
+                line.append(match.away_team.name)
+                line.append(f"{match.away_team_score} - {match.home_team_score}")
+                line.append(match.home_team.name)
+                # insert win/lose indicator
+                if match.winning_team_id == match.away_team.id:
+                    line.insert(0, "✅")
+                else:
+                    line.insert(0, "❌")
+            footer_lines.append("  ".join(line))
     
-    embed.set_footer(text="\n".join(footer_lines))
+        embed.set_footer(text="\n".join(footer_lines))
+
+    else:
+        embed.set_footer(text="No matches recorded yet.")
 
     await r.edit(content="", embed=embed)
 
-    return True, "NO RESPONSE"
+    return
 
 
 
