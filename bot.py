@@ -119,6 +119,7 @@ async def on_message(message):
                         line = line[-2000:]
                     line = f"{line}"
                     await func.dm_admin(client, line)
+        return
 
 
     if IS_DEV and not message.guild.id == cfg.TEST_GUILD_ID:
