@@ -89,7 +89,7 @@ async def execute(ctx, params):
         else:
             overflow = True
             last_page = math.ceil(len(event_list)/10)
-            event_list = event_list[(len(event_list)//10)*10:]
+            event_list = event_list[((len(event_list)-1)//10)*10:]  # -1 to switch from len to index count mode (starting from 0)
             embed.description = f"Page {last_page} of {last_page}."
             for event in event_list:
                 embed.add_field(name=event.title, value=event.date_time.strftime(format="%d.%m.%Y %I:%M%p"), inline=False)
